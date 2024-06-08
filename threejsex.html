@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Algorithm Research</title>
+    <style>
+        body {
+            margin: 0;
+            background-color: #2a2a2a;
+        }
+
+        #info {
+            position: relative;
+            top: 30px;
+            padding: 0px;
+            left:30px;
+            font-size: 12px;
+            font-family: "JetBrains Mono";
+            background-color: #1d1d1d;
+            color:#3CC255;
+            width: 100%;
+            height: 0px;
+            text-align: left;
+            z-index: 100;
+            display: block;
+        }
+
+    </style>
+</head>
+<body>
+<script src="threejs/three.js"></script>
+<!--<script src="threejs/lineUpdate.js"></script>-->
+<div id="info">Description</div>
+<div class="canvas"></div>
+
+<script>
+
+
+    String.prototype.format = function () {
+        var formatted = this;
+        for (var arg in arguments) {
+            formatted = formatted.replace("{" + arg + "}", arguments[arg]);
+        }
+        return formatted;
+    };
+
+    const renderer = new THREE.WebGLRenderer();
+    renderer.antialias = true;
+    renderer.setSize(window.innerWidth-150, window.innerHeight-200);
+
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap; // default THREE.PCFShadowMap
+
+    /*region LightSettings */
+    //Light Settings
+    const light = new THREE.DirectionalLight(0xffffff, 1);
+    light.position.set(0.5, 1, 1); //default; light shining from top
+    light.castShadow = true; // default false
+    //Set up shadow properties for the light
+    light.shadow.mapSize.width = 512; // default
+    light.shadow.mapSize.height = 512; // default
+    light.shadow.camera.near = 0.5; // default
+    light.shadow.camera.far = 500; // default
+    /*endregion LightSettings */
+
+    document.body.getElementsByClassName("canvas")[0].appendChild(renderer.domElement);
+
+    /*region CameraSettings */
+    const windowRate = window.innerWidth / window.innerHeight;
+    // const camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 0.1, 1000 );
+    const camera = new THREE.OrthographicCamera(windowRate * 50, windowRate * -50, windowRate * 50, windowRate - 50, 0.1, 2000);
+    camera.position.set(0, 0, -50);
+    camera.rotation.set(0, 0, 0);
+    camera.zoom = 1;
+    camera.lookAt(0, 0, 0);
+    /*endregion CameraSettings */
+
+    const scene = new THREE.Scene();
+
+    //create a blue LineBasicMaterial
+    const material = new THREE.LineBasicMaterial({color: 0x55ff55});
+
+
+    const res = 48;
+
+    const circlePoints = [];
+    const radiusCircle = 5;
+    const resAngle = 360 / res;
+    for (let i = 0; i < res; i++) {
+        let nextAngle = resAngle * i;
+        let x = Math.cos(nextAngle * (1 / (180 / Math.PI))) * radiusCircle;
+        let y = Math.sin(nextAngle * (1 / (180 / Math.PI))) * radiusCircle;
+        circlePoints.push(new THREE.Vector3(x, y + 10, 0));
+
+    }
+    circlePoints.push(circlePoints[0]);
+
+    const geometryCircleLine = new THREE.BufferGeometry().setFromPoints(circlePoints);
+    const circleLine = new THREE.Line(geometryCircleLine, material);
+
+    // scene.add(circleLine);
+
+
+    /*region GearDesign */
+
+
+    const gearsRadius = [15, 5];
+
+    const offsetGears = [new THREE.Vector3(0, 0, 0), new THREE.Vector3(20, 25, 0)];
+
+    const gearRes = 24;
+
+    const resUnitAngle = 360 / gearRes;
+
+    const gearCirclePoints = [];
+
+
+    for (let i = 0; i < gearsRadius.length; i++) {
+        let gearCirclePoint = [];
+        for (let j = 0; j < gearRes; j++) {
+            let nextAngle = resUnitAngle * j;
+            let x = Math.cos(nextAngle * (1 / (180 / Math.PI))) * gearsRadius[i];
+            let y = Math.sin(nextAngle * (1 / (180 / Math.PI))) * gearsRadius[i];
+            gearCirclePoint.push(new THREE.Vector3(x + offsetGears[i].x, y + offsetGears[i].y, 0));
+        }
+        gearCirclePoint.push(gearCirclePoint[0]);
+        gearCirclePoints.push(gearCirclePoint);
+
+
+        let gearCircleLineGeometry = new THREE.BufferGeometry().setFromPoints(gearCirclePoint);
+        let gearCircleLine = new THREE.Line(gearCircleLineGeometry, material);
+
+
+        scene.add(gearCircleLine);
+    }
+
+    //center link line
+    const rad = 1 / (180 / Math.PI);
+
+    /*region DrawTangentLine */
+    let linkPoint = [];
+    const materialLink = new THREE.LineBasicMaterial({color: 0xff0000});
+    const materialLinkR = new THREE.LineBasicMaterial({color: 0xffff00});
+
+    let distanceGears = [];
+    let tangentDistanceGears = [];
+    let adjacentGears = [];
+    let angleGears = [];
+
+
+    let debugString = "";
+
+
+    linkPoint.push(offsetGears[0]);
+
+    //distance
+    const dist = offsetGears[0].distanceTo(offsetGears[1]);
+    distanceGears.push(dist);
+
+    const adjacent = gearsRadius[0] - gearsRadius[1];
+    adjacentGears.push(adjacent);
+
+    const tangentDistance = Math.sqrt(Math.pow(dist, 2) - Math.pow(adjacent, 2));
+    tangentDistanceGears.push(tangentDistance);
+
+
+
+
+    const aD = offsetGears[1].x-offsetGears[0].x;
+    const oD = offsetGears[1].y-offsetGears[0].y;
+    const hD = dist;
+
+    const h = dist;
+    const o = tangentDistance;
+    const a = adjacent;
+
+    let cosAngle = Math.acos(aD / hD) / rad;
+    let cosTangentAngle = Math.acos(a / h) / rad;
+
+    if(offsetGears[1].x-offsetGears[0].x < 0){
+        cosTangentAngle = cosTangentAngle * -1;
+    }
+    if(offsetGears[1].y-offsetGears[0].y < 0){
+        cosAngle = cosAngle * -1;
+    }
+
+    let forwardAngle = cosAngle+cosTangentAngle;
+    let reverseAngle = cosAngle-cosTangentAngle;
+
+
+    /*region Internal Tangent */
+    const betweenDistance = dist - (gearsRadius[0]+gearsRadius[1]);
+    const hypoA = gearsRadius[0]+(betweenDistance*(gearsRadius[0]/(gearsRadius[0]+gearsRadius[1])));
+    const oppoA = Math.sqrt(Math.pow(hypoA,2) - Math.pow(gearsRadius[0],2));
+
+    const iFowardSt = (Math.acos(gearsRadius[0]/hypoA) /rad)+cosAngle;
+    const iFowardEd = 180+iFowardSt;
+    const iReverseSt = 360-(Math.acos(gearsRadius[0]/hypoA) /rad)+cosAngle;
+    const iReverseEd = 180-(Math.acos(gearsRadius[0]/hypoA) /rad)+cosAngle;
+    /*endregion Internal Tangent */
+
+    debugString += "\n";
+
+
+    // cubeIn.position.set(offsetGears[i].x, offsetGears[i].y, -30);
+
+    let xPos1ExtFor = Math.cos(forwardAngle * rad) * gearsRadius[0] + offsetGears[0].x;
+    let yPos1ExtFor = Math.sin(forwardAngle * rad) * gearsRadius[0] + offsetGears[0].y;
+    let zPos1ExtFor = 0;
+    let xPos2ExtRev = Math.cos(forwardAngle * rad) * gearsRadius[1] + offsetGears[1].x;
+    let yPos2ExtRev = Math.sin(forwardAngle * rad) * gearsRadius[1] + offsetGears[1].y;
+    let zPos2ExtRev = 0;
+
+    let xPos3IntFor = Math.cos(reverseAngle * rad) * gearsRadius[0] + offsetGears[0].x;
+    let yPos3IntFor = Math.sin(reverseAngle * rad) * gearsRadius[0] + offsetGears[0].y;
+    let zPos3IntFor = 0;
+    let xPos4IntRev = Math.cos(reverseAngle * rad) * gearsRadius[1] + offsetGears[1].x;
+    let yPos4IntRev = Math.sin(reverseAngle * rad) * gearsRadius[1] + offsetGears[1].y;
+    let zPos4IntRev = 0;
+
+    let xPosIntForSt = Math.cos(iFowardSt * rad) * gearsRadius[0] + offsetGears[0].x;
+    let yPosIntForSt = Math.sin(iFowardSt * rad) * gearsRadius[0] + offsetGears[0].y;
+
+    let xPosIntForEd = Math.cos(iFowardEd * rad) * gearsRadius[1] + offsetGears[1].x;
+    let yPosIntForEd = Math.sin(iFowardEd * rad) * gearsRadius[1] + offsetGears[1].y;
+
+
+    let xPosIntRevSt = Math.cos(iReverseSt * rad) * gearsRadius[0] + offsetGears[0].x;
+    let yPosIntRevSt = Math.sin(iReverseSt * rad) * gearsRadius[0] + offsetGears[0].y;
+
+    let xPosIntRevEd = Math.cos(iReverseEd * rad) * gearsRadius[1] + offsetGears[1].x;
+    let yPosIntRevEd = Math.sin(iReverseEd * rad) * gearsRadius[1] + offsetGears[1].y;
+
+
+
+    let tangentLineExtFor = [new THREE.Vector3(xPos1ExtFor, yPos1ExtFor, zPos1ExtFor), new THREE.Vector3(xPos2ExtRev, yPos2ExtRev, zPos2ExtRev)];
+    let tangentLineExtRev = [new THREE.Vector3(xPos3IntFor, yPos3IntFor, zPos3IntFor), new THREE.Vector3(xPos4IntRev, yPos4IntRev, zPos4IntRev)];
+
+    let tangentLineIntFor = [new THREE.Vector3(xPosIntForSt, yPosIntForSt, 0),
+        new THREE.Vector3(xPosIntForEd, yPosIntForEd, 0)];
+
+    let tangentLineIntRev = [new THREE.Vector3(xPosIntRevSt, yPosIntRevSt, 0),
+        new THREE.Vector3(xPosIntRevEd, yPosIntRevEd, 0)];
+
+
+    const geometryCube = new THREE.BoxGeometry(0.5, 0.5, 0.5);
+    const materialCubeInSt = new THREE.MeshStandardMaterial({color: 0xff00ff});
+    const materialCubeInEd = new THREE.MeshStandardMaterial({color: 0xffffff});
+    const cubeExtForSt = new THREE.Mesh(geometryCube, materialCubeInSt); //Forward A st -> B ed
+    const cubeExtForEd = new THREE.Mesh(geometryCube, materialCubeInEd);
+    const cubeExtRevSt = new THREE.Mesh(geometryCube, materialCubeInSt);
+    const cubeExtRevEd = new THREE.Mesh(geometryCube, materialCubeInEd);
+
+
+    cubeExtForSt.position.set(tangentLineExtFor[0].x, tangentLineExtFor[0].y, -20);
+    scene.add(cubeExtForSt);
+    cubeExtForEd.position.set(tangentLineExtFor[1].x, tangentLineExtFor[1].y, -20);
+    scene.add(cubeExtForEd);
+
+    cubeExtRevSt.position.set(tangentLineExtRev[0].x, tangentLineExtRev[0].y, -20);
+    scene.add(cubeExtRevSt);
+    cubeExtRevEd.position.set(tangentLineExtRev[1].x, tangentLineExtRev[1].y, -20);
+    scene.add(cubeExtRevEd);
+
+    let tangeLineExtGeometryFor = new THREE.BufferGeometry().setFromPoints(tangentLineExtFor);
+    let tangentLineExtFor3D = new THREE.Line(tangeLineExtGeometryFor, materialLink);
+    scene.add(tangentLineExtFor3D);
+    let tangeLineExtGeometryRev = new THREE.BufferGeometry().setFromPoints(tangentLineExtRev);
+    let tangentLineExtRev3D = new THREE.Line(tangeLineExtGeometryRev, materialLinkR);
+    scene.add(tangentLineExtRev3D);
+
+
+    let tangentInternalFowardGeometry = new THREE.BufferGeometry().setFromPoints(tangentLineIntFor);
+    let tangentInternalForwardLine3D = new THREE.Line(tangentInternalFowardGeometry, materialLink);
+    scene.add(tangentInternalForwardLine3D);
+    let tangentInternalReverseGeometry = new THREE.BufferGeometry().setFromPoints(tangentLineIntRev);
+    let tangentInternalReverseLine3D = new THREE.Line(tangentInternalReverseGeometry, materialLinkR);
+    scene.add(tangentInternalReverseLine3D);
+
+
+    /*endregion DrawTangentLine */
+
+
+
+    linkPoint.push(linkPoint[0]);
+
+    let linkPointLineGeometry = new THREE.BufferGeometry().setFromPoints(linkPoint);
+    let linkLine = new THREE.Line(linkPointLineGeometry, materialLink);
+    scene.add(linkLine);
+
+
+    let attachedArc = [];
+
+
+    //Info
+    debugString += "[ Circle {0} ]".format(0);
+    debugString += "\n";
+    debugString += "OriginPoint : {0},{1},{2} ".format(offsetGears[0].x, offsetGears[0].y, offsetGears[0].z);
+    debugString += "\n";
+
+    debugString += "Distance : {0} ".format(distanceGears[0].toFixed(1));
+    debugString += "\n";
+
+    debugString += "TangentDist : {0} ".format(tangentDistanceGears[0].toFixed(1));
+    debugString += "\n";
+
+    debugString += "radiusDiff : {0} ".format(adjacent.toFixed(1));
+    debugString += "\n";
+    debugString += "\n";
+
+    debugString += "cosAngle : {0} ".format(cosAngle.toFixed(1));
+    debugString += "\n";
+    debugString += "cosTangentAngle : {0} ".format(cosTangentAngle.toFixed(5));
+    debugString += "\n";
+    debugString += "\n";
+    debugString += "nAngle : {0} ".format(forwardAngle.toFixed(1));
+    debugString += "\n";
+    debugString += "rnAngle : {0} ".format(reverseAngle.toFixed(1));
+    debugString += "\n";
+    debugString += "\n";
+
+    debugString += "ExtCircle1AngleRange : {0}~{1} ".format(forwardAngle.toFixed(1), (360+reverseAngle).toFixed(1));
+    debugString += "\n";
+    debugString += "ExtCircle2AngleRange : {0}~{1} ".format((360+reverseAngle).toFixed(1), (forwardAngle).toFixed(1));
+    debugString += "\n";
+    debugString += "IntCircle1AngleRange : {0}~{1} ".format((iReverseSt).toFixed(1), (iFowardSt).toFixed(1));
+    debugString += "\n";
+    debugString += "IntCircle2AngleRange : {0}~{1} ".format(iReverseEd.toFixed(1), iFowardEd.toFixed(1));
+
+    debugString += "\n";
+
+    debugString += "hypoA : {0} ".format(hypoA.toFixed(1));
+    debugString += "\n";
+    debugString += "oppoA : {0} ".format(oppoA.toFixed(1));
+    debugString += "\n";
+    debugString += "iFowardSt : {0} ".format(iFowardSt.toFixed(1));
+    debugString += "\n";
+    debugString += "\n";
+
+
+    let descElem = document.getElementById("info");
+    let formatStr = "Origin Distance [{0}] ".format(distanceGears);
+    formatStr += "\n";
+    formatStr += "Tangent Distance [{0}]".format(tangentDistanceGears);
+    descElem.innerText = debugString;
+
+
+    //distance
+    /*
+    https://threejs.org/docs/index.html#manual/en/introduction/Creating-a-scene
+    * */
+
+    /*endregion GearDesign */
+
+
+    scene.add(light);
+
+    const dir = new THREE.Vector3(1, 2, 0);
+
+    //normalize the direction vector (convert to vector of length 1)
+    dir.normalize();
+
+    const origin = new THREE.Vector3(0, 0, 0);
+    const length = 1;
+    const hex = 0xffff00;
+
+
+    const helper = new THREE.CameraHelper(camera);
+    scene.add(helper);
+
+    const size = 100;
+    const divisions = 100;
+
+    const gridHelper = new THREE.GridHelper(size, divisions, 0x555555, 0x222222);
+    gridHelper.rotateX(90);
+    scene.add(gridHelper);
+
+
+    const arch1 = drawLineCircleByAngle(gearsRadius[0]+0.5, offsetGears[0], forwardAngle, (360+reverseAngle), 96);
+    scene.add(arch1);
+    const arch2= drawLineCircleByAngle(gearsRadius[1]+0.5, offsetGears[1], (360+reverseAngle), forwardAngle, 96);
+    scene.add(arch2);
+
+    renderer.render(scene, camera);
+
+
+
+    function drawLineCircleByAngle(r, offsetPos, stAngle, edAngle, res){
+
+        const resUnitAngleLocal = 360 / res;
+        const materialLocal = new THREE.LineBasicMaterial({color: 0x558888});
+
+        if(stAngle < edAngle){
+            let gearCirclePointLocal = [];
+            for (let j = 0; j < res; j++) {
+
+                let nextAngleLocal = resUnitAngleLocal * j;
+                if(nextAngleLocal >= (stAngle) && nextAngleLocal <= edAngle){
+                    let x = Math.cos(nextAngleLocal * (1 / (180 / Math.PI))) * r;
+                    let y = Math.sin(nextAngleLocal * (1 / (180 / Math.PI))) * r;
+                    gearCirclePointLocal.push(new THREE.Vector3(x + offsetPos.x, y + offsetPos.y, 0));
+                }
+            }
+            gearCirclePointLocal.push(gearCirclePointLocal[0]);
+
+            let gearCircleLineGeometryLocal = new THREE.BufferGeometry().setFromPoints(gearCirclePointLocal);
+            let gearCircleLineLocal = new THREE.Line(gearCircleLineGeometryLocal, materialLocal);
+
+            return gearCircleLineLocal;
+        }else{
+            let gearCirclePointLocal = [];
+            for (let j = 0; j < res; j++) {
+                let nextAngleLocal = resUnitAngleLocal * j;
+                if(nextAngleLocal >= stAngle){
+                    let x = Math.cos(nextAngleLocal * (1 / (180 / Math.PI))) * r;
+                    let y = Math.sin(nextAngleLocal * (1 / (180 / Math.PI))) * r;
+                    gearCirclePointLocal.push(new THREE.Vector3(x + offsetPos.x, y + offsetPos.y, 0));
+                }
+            }
+            for (let j = 0; j < res; j++) {
+                let nextAngleLocal = resUnitAngleLocal * j;
+                if(nextAngleLocal <= edAngle ){
+                    let x = Math.cos(nextAngleLocal * (1 / (180 / Math.PI))) * r;
+                    let y = Math.sin(nextAngleLocal * (1 / (180 / Math.PI))) * r;
+                    gearCirclePointLocal.push(new THREE.Vector3(x + offsetPos.x, y + offsetPos.y, 0));
+                }
+            }
+            gearCirclePointLocal.push(gearCirclePointLocal[0]);
+
+            let gearCircleLineGeometryLocal = new THREE.BufferGeometry().setFromPoints(gearCirclePointLocal);
+            let gearCircleLineLocal = new THREE.Line(gearCircleLineGeometryLocal, materialLocal);
+
+            return gearCircleLineLocal;
+        }
+
+    }
+
+
+</script>
+
+<!-- <script>
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 0.1, 1000 );
+
+    const renderer = new THREE.WebGLRenderer();
+    renderer.setSize( window.innerWidth, window.innerHeight );
+    document.body.appendChild( renderer.domElement );
+
+    const geometry = new THREE.BoxGeometry( 1, 1, 1 );
+    const material = new THREE.MeshBasicMaterial( { color: 0x88ff88 } );
+    const geometryLine = new THREE.BoxGeometry(2, 2, 2 );
+
+
+
+    const line = new THREE.Line( geometryLine, material );
+
+    const cube = new THREE.Mesh( geometry, material );
+    scene.add( cube );
+    scene.add( line );
+
+
+    camera.position.z = 5;
+
+    function animate() {
+        requestAnimationFrame( animate );
+
+        cube.rotation.x += 0.01;
+        cube.rotation.y += 0.01;
+
+        renderer.render( scene, camera );
+    };
+
+
+    animate();
+</script> -->
+</body>
+</html>
