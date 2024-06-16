@@ -21,10 +21,69 @@
 1年後にはいくらくらいになると思いますか?\
 投資したいので...
 
+### Mathematics History 
+```mermaid
 
+flowchart BT
+    subgraph ComputerScience
+        3D(3D)
+        Di(DigitalTwins)
+        Si(Simulations)
+        AI(AI)
+    end
+    
+    subgraph Digital
+        Sa(Sampling)
+        Bi(Bit)
+        Sp(Space)
+    end
+    
+    subgraph Analog
+        Te(Telecommunication)
+        Wa(Wave)
+        Id(Industrial Revolution)
+    end
+
+    subgraph FunctionAndCoordination
+        AX(Axis)
+        CA(Calculus)
+    end
+
+    subgraph Measurement
+        PT(Pythagorean theorem)
+        Sh(Shape)
+    end
+
+    subgraph HumanAndDrawings
+        Mu(Mural)
+        Si(Sign)
+        Al(Alphabet)
+        Nu(Number)
+    end
+
+    subgraph AncientNature
+        Ob(Objects)
+        Ti(Time)
+        Gr(Ground)
+        Wa(Water)
+    end
+
+    AncientNature --> HumanAndDrawings
+    HumanAndDrawings --> Measurement
+    Measurement --> FunctionAndCoordination
+    FunctionAndCoordination --> Analog
+    Analog --> Digital
+    Digital --> ComputerScience
+
+
+```
+### Program Preview
+
+![img_8.png](img_8.png)
 
 ![img.png](img.png)
 
+### TODO Implement Others
 ![img_1.png](img_1.png)
 ![img_2.png](img_2.png)
 ![img_3.png](img_3.png)
@@ -32,3 +91,4 @@
 ![img_5.png](img_5.png)
 ![img_6.png](img_6.png)
 ![img_7.png](img_7.png)
+

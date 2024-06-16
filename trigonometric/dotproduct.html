@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <script src="../vendor/threejs/three.js"></script>
+    <script src="trigonometrics.js"></script>
+    <link rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"/>
+    <link rel="stylesheet" href="../vendor/bootstrap/css/bootstrap.css">
+    <link rel="stylesheet" href="../vendor/highlight/styles/dark.min.css">
+    <script src="../vendor/bootstrap/js/bootstrap.js"></script>
+    <script src="../vendor/highlight/highlight.min.js"></script>
+    <script src="../vendor/highlight/languages/javascript.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+        }
+
+        #main3DCanvas {
+            width: 100%;
+            height: 800px;
+            border: 20px solid #000000;
+            border-radius: 30px;
+        }
+
+        #data{
+            margin:0px;
+        }
+        #mainDiv {
+            margin: 10px;
+        }
+
+        code{
+            border-radius: 10px;
+            margin-right:10px;
+        }
+
+        #manual{
+            /*overflow-y: scroll;*/
+            border: 1px solid #405166;
+            border-radius: 10px;
+            padding: 10px;
+        }
+        button {
+            margin-top: 5px;
+            margin-bottom: 5px;
+        }
+
+        #interface {
+            display: grid;
+            border: 1px solid #405166;
+            border-radius: 10px;
+            padding: 10px;
+        }
+        .scrollspy-example-2{
+            height:450px;
+            overflow: auto;
+        }
+
+    </style>
+    <title>dotproduct</title>
+    <script>hljs.highlightAll();
+
+    </script>
+
+    <script>
+
+        function init() {
+            Set3DEnv();
+            drawTriangle(4, 3);
+            drawTriangle(-4, 3);
+            drawTriangle(4, -3);
+            drawTriangle(-4, -3);
+            drawCube();
+            // drawCircleAxis(5, 36, 360, 'X');
+            // drawCircleAxis(5, 36, 360, 'Y');
+            // drawCircleAxis(5, 36, 360, 'Z');
+            let pointInfo = drawSphereAxis(5, 36, 360, 'Y');
+            drawVerticalLine(pointInfo);
+            setInputCameraPos();
+            setInputCameraRot();
+
+
+        }
+
+
+        function setInputCameraPos() {
+
+            let cameraPosId = document.getElementById("cameraPosId");
+            let inputs = cameraPosId.getElementsByTagName("input");
+            let curCamPos = getCameraPos();
+            for (let i = 0; i < inputs.length; i++) {
+                inputs[i].value = curCamPos[i];
+            }
+        }
+
+        function setInputCameraRot() {
+
+            let cameraPosId = document.getElementById("cameraRotId");
+            let inputs = cameraPosId.getElementsByTagName("input");
+            let curCamPos = getCameraRot();
+            for (let i = 0; i < inputs.length; i++) {
+                inputs[i].value = rad2Deg(curCamPos[i]);
+            }
+        }
+
+        function addOrbit() {
+            const controls = new OrbitControls(camera, renderer.domElement);
+
+        }
+    </script>
+</head>
+
+<body onload="init()">
+<div class="container text-center">
+    <div class="row">
+        <div class="col">
+        </div>
+        <div class="col">
+            <div class="btn-group" role="group" aria-label="Basic example">
+                <a href="http://www.google.com"
+                   class="btn btn-primary stretched-link">Google</a>
+                <a href="https://threejs.org/docs/index.html#manual/en/introduction/Creating-a-scene/"
+                   class="btn btn-primary stretched-link">ThreeJS</a>
+                <a href="https://getbootstrap.com/docs/5.3/getting-started/introduction/"
+                   class="btn btn-primary stretched-link">Bootstrap</a>
+                <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/"
+                   class="btn btn-primary stretched-link">Javascript</a>
+                <a href="https://fonts.google.com/icons" class="btn btn-primary stretched-link">GoogleIcons</a>
+            </div>
+        </div>
+        <div class="col">
+        </div>
+    </div>
+</div>
+<div id="init"></div>
+
+<div class="canvas" id="main3DCanvas"></div>
+<br/>
+
+<div class="row" id="data">
+    <div class="col-3">
+        <div id="interface">
+            <div class="input-group" id="cameraPosId">
+        <span class="input-group-text">
+            <span class="material-symbols-outlined">control_camera</span>
+        </span>
+                <input type="text" aria-label="First name" class="form-control" value="0">
+                <input type="text" aria-label="Last name" class="form-control" value="0">
+                <input type="text" aria-label="Last name" class="form-control" value="0">
+            </div>
+
+            <div class="btn-group" role="group" aria-label="Basic example">
+
+                <button class="btn btn-primary" onclick="setCameraPos(0.5, 0, 0, setInputCameraPos)">X+</button>
+                <button class="btn btn-primary" onclick="setCameraPos(-0.5, 0, 0, setInputCameraPos)">X-</button>
+                <button class="btn btn-primary" onclick="setCameraPos(0, 0.5, 0, setInputCameraPos)">Y+</button>
+                <button class="btn btn-primary" onclick="setCameraPos(0, -0.5, 0, setInputCameraPos)">Y-</button>
+                <button class="btn btn-primary" onclick="setCameraPos(0, 0, 0.5, setInputCameraPos)">Z+</button>
+                <button class="btn btn-primary" onclick="setCameraPos(0, 0, -0.5, setInputCameraPos)">Z-</button>
+
+            </div>
+
+            <div class="input-group" id="cameraRotId">
+        <span class="input-group-text">
+            <span class="material-symbols-outlined">rotate_right</span>
+        </span>
+                <input type="text" aria-label="First name" class="form-control" value="0">
+                <input type="text" aria-label="Last name" class="form-control" value="0">
+                <input type="text" aria-label="Last name" class="form-control" value="0">
+            </div>
+            <div class="btn-group" role="group" aria-label="Basic example">
+
+                <button class="btn btn-primary" onclick="setCameraRot(0.5, 0, 0, setInputCameraRot)">X+</button>
+                <button class="btn btn-primary" onclick="setCameraRot(-0.5, 0, 0, setInputCameraRot)">X-</button>
+                <button class="btn btn-primary" onclick="setCameraRot(0, 0.5, 0, setInputCameraRot)">Y+</button>
+                <button class="btn btn-primary" onclick="setCameraRot(0, -0.5, 0, setInputCameraRot)">Y-</button>
+                <button class="btn btn-primary" onclick="setCameraRot(0, 0, 0.5, setInputCameraRot)">Z+</button>
+                <button class="btn btn-primary" onclick="setCameraRot(0, 0, -0.5, setInputCameraRot)">Z-</button>
+            </div>
+
+
+            <div>
+                <div class="btn-group" role="group" aria-label="Basic example">
+                    <button type="button" class="btn btn-primary" onclick="rotateObjectByInterval()"><span
+                            class="material-symbols-outlined">
+360
+</span></button>
+                    <button type="button" class="btn btn-primary" onclick="stopAnim()"><span
+                            class="material-symbols-outlined">
+stop_circle
+</span></button>
+                </div>
+
+            </div>
+
+
+        </div>
+
+    </div>
+    <div class="col-9">
+        <div id="manual">
+            <div class="row">
+                <div class="col-4">
+                    <nav id="navbar-example3" class="h-100 flex-column align-items-stretch pe-4 border-end">
+                        <nav class="nav nav-pills flex-column">
+                            <a class="nav-link" href="#item-1">Trigonometric Functions</a>
+                            <nav class="nav nav-pills flex-column">
+                                <a class="nav-link ms-3 my-1" href="#item-1-1">Trigonometric Functions-1</a>
+                                <a class="nav-link ms-3 my-1" href="#item-1-2">Trigonometric Functions-2</a>
+                            </nav>
+                            <a class="nav-link" href="#item-2">Waves</a>
+                            <a class="nav-link active" href="#item-3">3D Mesh</a>
+                            <nav class="nav nav-pills flex-column">
+                                <a class="nav-link ms-3 my-1" href="#item-3-1">3D Mesh-1</a>
+                                <a class="nav-link ms-3 my-1 active" href="#item-3-2">3D Mesh-2</a>
+                            </nav>
+                        </nav>
+                    </nav>
+                </div>
+                <div class="col-8">
+                    <div data-bs-spy="scroll" data-bs-target="#navbar-example3" data-bs-smooth-scroll="true" class="scrollspy-example-2" tabindex="0">
+                        <div id="item-1">
+                            <h4>Trigonometric Functions</h4>
+                            <pre><code style="font-family: 'JetBrains Mono'; overflow: hidden;"  class="language-javascript">
+function drawCircleAxis(r, seg, angle, axisName, axisVal) {
+    if (r == null) r = 3;
+    if (seg == null) seg = 24;
+    if (angle == null) angle = 360;
+    if (axisName == null) axisName = 'Z';
+    if (axisVal == null) axisVal = 0;
+
+
+    let a = 0;
+    let b = 0;
+    let c = 0;
+
+
+    let ua = angle / seg;
+
+    const material = new THREE.LineBasicMaterial({color: 0x33ff33});
+
+    const points = [];
+
+    for (let i = 0; i < seg + 1; i++) {
+        const nDeg = i * ua;
+        const nRad = deg2Rad(nDeg);
+        const cos = Math.cos(nRad);
+        const sin = Math.sin(nRad);
+        const cosAxisPos = cos * r;
+        const sinAxisPos = sin * r;
+
+        points.push(axisChange(cosAxisPos, sinAxisPos, axisVal, axisName));
+    }
+
+    const geometry = new THREE.BufferGeometry().setFromPoints(points);
+
+    const line = new THREE.Line(geometry, material);
+    selectedObject.push(line);
+    scene.add(line);
+    renderer.render(scene, camera);
+
+    return points;
+}
+
+
+                            </code></pre>
+
+
+                        </div>
+                        <div id="item-1-1">
+                            <h5>Trigonometric Functions-1</h5>
+                            <p>This is some placeholder content for the scrollspy page. Note that as you scroll down the page, the appropriate navigation link is highlighted. It's repeated throughout the component example. We keep adding some more example copy here to emphasize the scrolling and highlighting.</p>
+                            <p>Keep in mind that the JavaScript plugin tries to pick the right element among all that may be visible. Multiple visible scrollspy targets at the same time may cause some issues.</p>
+                        </div>
+                        <div id="item-1-2">
+                            <h5>Trigonometric Functions-2</h5>
+                            <p>This is some placeholder content for the scrollspy page. Note that as you scroll down the page, the appropriate navigation link is highlighted. It's repeated throughout the component example. We keep adding some more example copy here to emphasize the scrolling and highlighting.</p>
+                            <p>Keep in mind that the JavaScript plugin tries to pick the right element among all that may be visible. Multiple visible scrollspy targets at the same time may cause some issues.</p>
+                        </div>
+                        <div id="item-2">
+                            <h4>Waves</h4>
+                            <p>This is some placeholder content for the scrollspy page. Note that as you scroll down the page, the appropriate navigation link is highlighted. It's repeated throughout the component example. We keep adding some more example copy here to emphasize the scrolling and highlighting.</p>
+                            <p>Keep in mind that the JavaScript plugin tries to pick the right element among all that may be visible. Multiple visible scrollspy targets at the same time may cause some issues.</p>
+                        </div>
+                        <div id="item-3">
+                            <h4>3D Mesh</h4>
+                            <p>This is some placeholder content for the scrollspy page. Note that as you scroll down the page, the appropriate navigation link is highlighted. It's repeated throughout the component example. We keep adding some more example copy here to emphasize the scrolling and highlighting.</p>
+                            <p>Keep in mind that the JavaScript plugin tries to pick the right element among all that may be visible. Multiple visible scrollspy targets at the same time may cause some issues.</p>
+                        </div>
+                        <div id="item-3-1">
+                            <h5>3D Mesh-1</h5>
+                            <p>This is some placeholder content for the scrollspy page. Note that as you scroll down the page, the appropriate navigation link is highlighted. It's repeated throughout the component example. We keep adding some more example copy here to emphasize the scrolling and highlighting.</p>
+                            <p>Keep in mind that the JavaScript plugin tries to pick the right element among all that may be visible. Multiple visible scrollspy targets at the same time may cause some issues.</p>
+                        </div>
+                        <div id="item-3-2">
+                            <h5>3D Mesh-2</h5>
+                            <p>This is some placeholder content for the scrollspy page. Note that as you scroll down the page, the appropriate navigation link is highlighted. It's repeated throughout the component example. We keep adding some more example copy here to emphasize the scrolling and highlighting.</p>
+                            <p>Keep in mind that the JavaScript plugin tries to pick the right element among all that may be visible. Multiple visible scrollspy targets at the same time may cause some issues.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+</div>
+
+
+</body>
+</html>
