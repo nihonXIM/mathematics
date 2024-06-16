@@ -67,24 +67,106 @@
 
     </script>
 
-    <script>
+    <script language="JavaScript">
+        let i = 0;
 
         function init() {
             Set3DEnv();
+            setInputCameraPos();
+            setInputCameraRot();
+
+            // drawCube();
+            /*
+
+
+            drawTriangle();
+
+            drawRadianAndDegree();
+
+            drawCircleAxis();
+
+            expDrawSinWave();
+            expDrawCosWave();
+            expDrawTanWave();
+
+
+            drawSphereAxis();
+
+            scalarAndVector();
+            //magnitude
+            //direction
+
+            calculateVectorMinus();
+            calculateVectorPlus();
+
+
+
+            thetaBetweenTwoVector();
+
+            dotProduct();
+            crossProduct();
+
+
+            */
+
+
+            expDrawSineWave();
+
+        }
+        function Curse(){
+
+        }
+
+          async  function expDrawSineWave(){
+            let animTime = 40;
+            setGlobalOffset(-1, 0, 0);
+            let circleVertex = drawCircleAxis(1, 96, 720, 'Z', 0, 48);
+            setGlobalOffset(0, 0, 0);
+            let sinVertex = drawSineWave(1, 96, 720, 'Z', 0);
+            i=0;
+            setGlobalLineMaterial("#6be670");
+            animLine(circleVertex, sinVertex, circleVertex.length, animTime);
+
+            setTimeout(()=>{
+                setGlobalLineMaterial("#00d0ff");
+                setGlobalOffset(-5, 0, 0);
+                circleVertex = drawCircleAxis(5, 96, 720, 'Z', 0, 48);
+                setGlobalOffset(0, 0, 0);
+                sinVertex = drawSineWave(5, 96, 720, 'Z', 0);
+                i=0;
+                animLine(circleVertex, sinVertex, circleVertex.length, animTime);
+            },5000);
+
+        }
+
+        function animLine(a, b, maxLen, time){
+
+            setTimeout(()=>{
+                i+=1;
+                drawFromToLine(a[i], b[i]);
+                if(i < maxLen){
+                    animLine(a, b, maxLen, time);
+                }
+            }, time);
+        }
+
+
+        function expDrawAxisCircle(){
+            // drawCircleAxis(5, 36, 360, 'X');
+            // drawCircleAxis(5, 36, 360, 'Y');
+            // drawCircleAxis(5, 36, 360, 'Z');
+        }
+
+        function expDraw3DSphere(){
+            let pointInfo = drawSphereAxis(5, 36, 360, 'Y');
+            drawVerticalLine(pointInfo);
+        }
+
+        function expDrawTriangleExam(){
             drawTriangle(4, 3);
             drawTriangle(-4, 3);
             drawTriangle(4, -3);
             drawTriangle(-4, -3);
-            drawCube();
-            // drawCircleAxis(5, 36, 360, 'X');
-            // drawCircleAxis(5, 36, 360, 'Y');
-            // drawCircleAxis(5, 36, 360, 'Z');
-            let pointInfo = drawSphereAxis(5, 36, 360, 'Y');
-            drawVerticalLine(pointInfo);
-            setInputCameraPos();
-            setInputCameraRot();
-
-
         }
 
 
@@ -108,14 +190,11 @@
             }
         }
 
-        function addOrbit() {
-            const controls = new OrbitControls(camera, renderer.domElement);
-
-        }
     </script>
 </head>
 
 <body onload="init()">
+
 <div class="container text-center">
     <div class="row">
         <div class="col">
@@ -269,8 +348,6 @@ function drawCircleAxis(r, seg, angle, axisName, axisVal) {
 
 
                             </code></pre>
-
-
                         </div>
                         <div id="item-1-1">
                             <h5>Trigonometric Functions-1</h5>

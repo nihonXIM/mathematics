@@ -3,9 +3,23 @@ let camera;
 let renderer;
 let selectedObject = [];
 let intervals;
+let globalOffset = new THREE.Vector3(0, 0, 0);
+let globalLineMaterial = new THREE.LineBasicMaterial({color: 0x33ff33});
+let globalMaterial;
 
 
 function setGridHelper() {
+}
+
+
+function setGlobalOffset(x, y, z){
+    globalOffset = new THREE.Vector3(x, y, z);
+}
+
+
+function setGlobalLineMaterial(color){
+    let hex = parseInt(color.replace(/^#/, ''), 16);
+    globalLineMaterial = new THREE.LineBasicMaterial({color: hex});
 }
 
 function Set3DEnv() {
@@ -58,7 +72,7 @@ function Set3DEnv() {
 function drawTriangle(x, y) {
 
 
-    const material = new THREE.LineBasicMaterial({color: 0xffff00});
+    globalLineMaterial = new THREE.LineBasicMaterial({color: 0xffff00});
 
     const points = [];
     points.push(new THREE.Vector3(0, 0, 0));
@@ -69,7 +83,7 @@ function drawTriangle(x, y) {
 
     const geometry = new THREE.BufferGeometry().setFromPoints(points);
 
-    const line = new THREE.Line(geometry, material);
+    const line = new THREE.Line(geometry, globalLineMaterial);
 
     scene.add(line);
 
@@ -83,7 +97,7 @@ function drawCube() {
     const meshColor1 = new THREE.Color(0x45aaf2);
     const geometry = new THREE.BoxGeometry(1, 1, 1);
     const material = new THREE.MeshBasicMaterial({color: meshColor1});
-    const cube = new THREE.Mesh(geometry, material);
+    const cube = new THREE.Mesh(geometry, globalLineMaterial);
     selectedObject.push(cube);
 
     scene.add(cube);
@@ -93,7 +107,7 @@ function drawCube() {
 }
 
 function drawVerticalLine(pointInfo){
-    const material = new THREE.LineBasicMaterial({color: 0x33ff33});
+    globalLineMaterial = new THREE.LineBasicMaterial({color: 0x33ff33});
 
 
     for (let i = 0; i < pointInfo[0].length; i++) {
@@ -102,7 +116,7 @@ function drawVerticalLine(pointInfo){
             points.push(pointInfo[j][i]);
         }
         const geometry = new THREE.BufferGeometry().setFromPoints(points);
-        const line = new THREE.Line(geometry, material);
+        const line = new THREE.Line(geometry, globalLineMaterial);
         scene.add(line);
         selectedObject.push(line);
     }
@@ -164,7 +178,7 @@ function drawCircle(r, seg, angle, z) {
 
     let ua = angle / seg;
 
-    const material = new THREE.LineBasicMaterial({color: 0xffff00});
+    globalLineMaterial= new THREE.LineBasicMaterial({color: 0xffff00});
 
     const points = [];
 
@@ -183,7 +197,7 @@ function drawCircle(r, seg, angle, z) {
     renderer.render(scene, camera);
 }
 
-function drawCircleAxis(r, seg, angle, axisName, axisVal) {
+function drawCircleAxis(r, seg, angle, axisName, axisVal, split) {
     if (r == null) r = 3;
     if (seg == null) seg = 24;
     if (angle == null) angle = 360;
@@ -198,7 +212,6 @@ function drawCircleAxis(r, seg, angle, axisName, axisVal) {
 
     let ua = angle / seg;
 
-    const material = new THREE.LineBasicMaterial({color: 0x33ff33});
 
     const points = [];
 
@@ -210,19 +223,91 @@ function drawCircleAxis(r, seg, angle, axisName, axisVal) {
         const cosAxisPos = cos * r;
         const sinAxisPos = sin * r;
 
-        points.push(axisChange(cosAxisPos, sinAxisPos, axisVal, axisName));
+        points.push(axisChange(globalOffset.x+cosAxisPos, globalOffset.y+sinAxisPos, globalOffset.z+axisVal, axisName));
+    }
+    const geometry = new THREE.BufferGeometry().setFromPoints(points);
+
+    const line = new THREE.Line(geometry, globalLineMaterial);
+    selectedObject.push(line);
+    scene.add(line);
+    renderer.render(scene, camera);
+
+    let splitPoints = [];
+    if(split != null){
+        for(let i=0; i<split; i++){
+            const nDeg = i * (360/split);
+            const nRad = deg2Rad(nDeg);
+            const cos = Math.cos(nRad);
+            const sin = Math.sin(nRad);
+            const cosAxisPos = cos * r;
+            const sinAxisPos = sin * r;
+            splitPoints.push(axisChange(globalOffset.x, globalOffset.y, axisVal+globalOffset.z, axisName));
+            splitPoints.push(axisChange(cosAxisPos+globalOffset.x, sinAxisPos+globalOffset.y, axisVal+globalOffset.z, axisName));
+            const geometrySplit = new THREE.BufferGeometry().setFromPoints(splitPoints);
+            const lineSplit = new THREE.Line(geometrySplit, globalLineMaterial);
+            selectedObject.push(lineSplit);
+            scene.add(lineSplit);
+        }
+        renderer.render(scene, camera);
+    }
+
+    return points;
+}
+
+ function drawFromToLine(from, to){
+
+        let points = [];
+        points.push(from);
+        points.push(to);
+
+        const geometry = new THREE.BufferGeometry().setFromPoints(points);
+
+        const line = new THREE.Line(geometry, globalLineMaterial);
+        selectedObject.push(line);
+        scene.add(line);
+        renderer.render(scene, camera);
+
+
+}
+
+function drawSineWave(r, seg, angle, axisName, axisVal){
+    if (r == null) r = 3;
+    if (seg == null) seg = 24;
+    if (angle == null) angle = 360;
+    if (axisName == null) axisName = 'Z';
+    if (axisVal == null) axisVal = 0;
+
+
+    let a = 0;
+    let b = 0;
+    let c = 0;
+
+
+    let ua = angle / seg;
+
+
+    const points = [];
+
+    for (let i = 0; i < seg + 1; i++) {
+        const nDeg = i * ua;
+        const nRad = deg2Rad(nDeg);
+        const cos = Math.cos(nRad);
+        const sin = Math.sin(nRad);
+        const cosAxisPos = cos * r;
+        const sinAxisPos = sin * r;
+
+        points.push(axisChange(nRad, sinAxisPos, axisVal, axisName));
     }
 
     const geometry = new THREE.BufferGeometry().setFromPoints(points);
 
-    const line = new THREE.Line(geometry, material);
+    const line = new THREE.Line(geometry, globalLineMaterial);
     selectedObject.push(line);
     scene.add(line);
     renderer.render(scene, camera);
 
     return points;
 }
-
 function axisChange(cosAxisPos, sinAxisPos, axisVal, axisName) {
 
     /*

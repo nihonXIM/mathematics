@@ -1,3 +1,4 @@
+# Mathematics
 数学を学ぶ理由と便利に使っているところをアプリでご紹介しようと思います。
 
 こちらは数学の勉強をする理由と
@@ -6,20 +7,24 @@
 
 将来、生活を便利に送るために活用できる方法をご紹介します。
 
+* 中等学校の数学
+* 高等学校の数学
+* 大学での数学
 
-
-中等学校の数学
-
-高等学校の数学
-
-大学での数学\
-
+## Science Mathematics
 数学は全ての分野で隠して使用されているので、
 将来には最も重要な事になります。
 
+## Business Mathematics
 お金を稼ぐために数学で計算しなければならない\
 1年後にはいくらくらいになると思いますか?\
 投資したいので...
+### 会計
+### 金融
+### Statistics
+### Stock
+### 為替レート
+
 
 ### Mathematics History 
 ```mermaid
@@ -32,16 +37,13 @@ flowchart BT
         AI(AI)
     end
     
-    subgraph Digital
-        Sa(Sampling)
-        Bi(Bit)
-        Sp(Space)
-    end
-    
-    subgraph Analog
+    subgraph Applications
+        Ch(Chemistry)
+        Sc(Science)
         Te(Telecommunication)
-        Wa(Wave)
-        Id(Industrial Revolution)
+        Ew(Electromagnetic Waves)
+        Ps(Physics)
+        IR(Industrial Revolution)
     end
 
     subgraph FunctionAndCoordination
@@ -50,7 +52,8 @@ flowchart BT
     end
 
     subgraph Measurement
-        PT(Pythagorean theorem)
+        Pt(Pythagorean theorem)
+        He(Geometry)
         Sh(Shape)
     end
 
@@ -68,15 +71,16 @@ flowchart BT
         Wa(Water)
     end
 
-    AncientNature --> HumanAndDrawings
-    HumanAndDrawings --> Measurement
-    Measurement --> FunctionAndCoordination
-    FunctionAndCoordination --> Analog
-    Analog --> Digital
-    Digital --> ComputerScience
+    AncientNature --Mark and Imagine--> HumanAndDrawings
+    HumanAndDrawings --Private Property and Exchange--> Measurement
+    Measurement --Dynamics--> FunctionAndCoordination
+    FunctionAndCoordination --Predictable--> Applications
+    Applications --Interchangeable--> ComputerScience
 
 
 ```
+
+
 ### Program Preview
 
 ![img_8.png](img_8.png)
@@ -92,3 +96,4 @@ flowchart BT
 ![img_6.png](img_6.png)
 ![img_7.png](img_7.png)
 
+	
