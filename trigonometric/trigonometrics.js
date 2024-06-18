@@ -63,8 +63,6 @@ function Set3DEnv() {
     gridHelperYZ.rotation.y = deg2Rad(90);
 
 
-
-
     canvas.appendChild(renderer.domElement);
     renderer.render(scene, camera);
 }
@@ -381,3 +379,6 @@ function deg2Rad(deg) {
 function rad2Deg(rad) {
     return rad / (Math.PI * 2) * 360;
 }
+
+
+
