@@ -68,11 +68,21 @@ flowchart BT
 # Maths Model
 数学は自然の原理などを文字と数字で公式として構成しました。X=4、Y=3のArea of Rectangleに関して
 Xが変化したら、Areaは変化されます。
-* 唯一な値と互換性の利用
+## 唯一な値と互換性の利用
   3*4=12などの掛け算したら、結果の値が唯一な状態になるます。
 
-* お互いの約束した文字の表記
+## お互いの約束した文字の表記
 
+## 1:1関数関係の変化量
+* f(x) = 2x
+* f(x) = 1/2x
+* f(x) = x^2
+## 1:X関数関係の変化量
+
+## X:X関数関係の変化量、Irregular
+* データ配列での詳細化
+* 3 = 2, 4 = 6, 7 = 2\
+![img_9.png](img_9.png)
 
 # Math Skill Tree
 
@@ -82,6 +92,12 @@ https://www.mathsisfun.com/
 * 中等学校の数学
 * 高等学校の数学
 * 大学での数学
+
+
+### Visualize and Programming
+* [Geometry](Geometry.md)
+
+
 
 # Life and Math
 こちらは数学の勉強をする理由と
