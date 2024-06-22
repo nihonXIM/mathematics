@@ -14,17 +14,13 @@
           }
         }
     </script>
+
     <script type="module">
         import * as THREE from 'three';
         import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
-        import {GPUStatsPanel} from 'three/addons/utils/GPUStatsPanel.js';
         import {GUI} from 'three/addons/libs/lil-gui.module.min.js';
-        import {Line2} from 'three/addons/lines/Line2.js';
         import {CSS2DRenderer, CSS2DObject} from 'three/addons/renderers/CSS2DRenderer.js';
         import {CSS3DRenderer, CSS3DObject} from 'three/addons/renderers/CSS3DRenderer.js';
-        import {LineMaterial} from 'three/addons/lines/LineMaterial.js';
-        import {LineGeometry} from 'three/addons/lines/LineGeometry.js';
-        import * as GeometryUtils from 'three/addons/utils/GeometryUtils.js';
 
 
         let scene;
@@ -85,10 +81,10 @@
             });
 
 
-            const gridHelperXYColor1 = new THREE.Color(0x777777);
-            const gridHelperXYColor2 = new THREE.Color(0x777777);
-            const gridHelperYZColor1 = new THREE.Color(0x777777);
-            const gridHelperYZColor2 = new THREE.Color(0x777777);
+            const gridHelperXYColor1 = new THREE.Color(0x333333);
+            const gridHelperXYColor2 = new THREE.Color(0x333333);
+            const gridHelperYZColor1 = new THREE.Color(0x333333);
+            const gridHelperYZColor2 = new THREE.Color(0x333333);
 
             scene = new THREE.Scene();
 
@@ -99,7 +95,7 @@
 // init
 
             camera = new THREE.PerspectiveCamera(60, canvasX / canvasY, 0.01, 1000);
-            camera.position.z = 15;
+            camera.position.z = 50;
             camera.position.y = 1;
             camera.layers.enableAll();
 
@@ -109,14 +105,14 @@
             dirLight.layers.enableAll();
             scene.add(dirLight);
 
-            const size = 25;
-            const divisions = 25;
+            const size = 100;
+            const divisions = 100;
 
 
             const gridHelperXY = new THREE.GridHelper(size, divisions, gridHelperXYColor1, gridHelperXYColor2);
             const gridHelperYZ = new THREE.GridHelper(size, divisions, gridHelperYZColor1, gridHelperYZColor2);
             scene.add(gridHelperXY);
-            scene.add(gridHelperYZ);
+            // scene.add(gridHelperYZ);
 
             gridHelperXY.rotation.x = deg2Rad(90);
             gridHelperYZ.rotation.y = deg2Rad(90);
@@ -160,6 +156,7 @@
 
         }
 
+
         function setGridHelper() {
         }
 
@@ -171,7 +168,12 @@
 
         function setGlobalLineMaterial(color) {
             let hex = parseInt(color.replace(/^#/, ''), 16);
-            globalLineMaterial = new THREE.LineBasicMaterial({color: hex});
+            globalLineMaterial = new THREE.LineBasicMaterial({
+                color: 0xffffff,
+                linewidth: 3,
+                linecap: 'round', //ignored by WebGLRenderer
+                linejoin: 'round' //ignored by WebGLRenderer
+            });
         }
 
         function setOrbit() {
@@ -213,32 +215,43 @@
             // controls.update();
         }
 
-        function drawTriangle(e, x, y) {
-            if (x == null) x = 4;
-            if (y == null) y = 3;
+        function drawTriangle2D(x = 4, y = 3) {
 
             const points = [];
+
             points.push(new THREE.Vector3(0, 0, 0));
-            points.push(new THREE.Vector3(x, 0, 0));
-            points.push(new THREE.Vector3(x, y, 0));
-            points.push(new THREE.Vector3(0, 0, 0));
+            points.push(new THREE.Vector3(Number(x), 0, 0));
+            points.push(new THREE.Vector3(Number(x), Number(y), 0));
             points.push(new THREE.Vector3(0, 0, 0));
 
             const geometry = new THREE.BufferGeometry().setFromPoints(points);
 
+            const heartShape = new THREE.Shape().setFromPoints(points);
+            //
+            // heartShape.moveTo( 0, 0);
+            // heartShape.lineTo( x, 0);
+            // heartShape.lineTo( x, y);
+            // heartShape.lineTo( 0, 0);
+
+            const geometryMesh = new THREE.ShapeGeometry( heartShape );
+            globalMaterial = new THREE.MeshBasicMaterial( { color: 0xffff33, transparent: true, opacity: 0.2 } );
+
             const line = new THREE.Line(geometry, globalLineMaterial);
+            const mesh = new THREE.Mesh(geometryMesh, globalMaterial);
+            line.add(mesh);
 
             scene.add(line);
 
-            selectedObject.push(line);
             renderer.render(scene, camera);
+
+            return line;
         }
 
 
         function drawSphereDefault() {
             const geometry = new THREE.SphereGeometry(1, 36, 36);
             const sphere = new THREE.Mesh(geometry, globalMaterial);
-            selectedObject.push(sphere);
+
             scene.add(sphere);
             return sphere;
         }
@@ -246,7 +259,7 @@
         function drawCube() {
             const geometry = new THREE.BoxGeometry(1, 1, 1);
             const cube = new THREE.Mesh(geometry, globalMaterial);
-            selectedObject.push(cube);
+
             scene.add(cube);
             return cube;
         }
@@ -264,7 +277,7 @@
 
                 const line = new THREE.Line(geometry, globalLineMaterial);
                 scene.add(line);
-                selectedObject.push(line);
+
             }
 
             renderer.render(scene, camera);
@@ -339,12 +352,12 @@
             const geometry = new THREE.BufferGeometry().setFromPoints(points);
 
             const line = new THREE.Line(geometry, material);
-            selectedObject.push(line);
+
             scene.add(line);
             renderer.render(scene, camera);
         }
 
-        function drawCircleAxis(r, seg, angle, axisName, axisVal, split) {
+        function drawCircleAxis(r, seg, angle, axisName, axisVal, split, returnType) {
             if (r == null) r = 3;
             if (seg == null) seg = 24;
             if (angle == null) angle = 360;
@@ -375,7 +388,7 @@
             const geometry = new THREE.BufferGeometry().setFromPoints(points);
 
             const line = new THREE.Line(geometry, globalLineMaterial);
-            selectedObject.push(line);
+
             scene.add(line);
             renderer.render(scene, camera);
 
@@ -392,14 +405,19 @@
                     splitPoints.push(axisChange(cosAxisPos + globalOffset.x, sinAxisPos + globalOffset.y, axisVal + globalOffset.z, axisName));
                     const geometrySplit = new THREE.BufferGeometry().setFromPoints(splitPoints);
                     const lineSplit = new THREE.Line(geometrySplit, globalLineMaterial);
-                    selectedObject.push(lineSplit);
+
                     scene.add(lineSplit);
                 }
                 renderer.render(scene, camera);
             }
 
             points.push(points[0]);
-            return points;
+
+            if (returnType == "obj") {
+                return line;
+            } else {
+                return points;
+            }
         }
 
         function drawLineFromTo(from, to) {
@@ -414,7 +432,7 @@
 
             const geometry = new THREE.BufferGeometry().setFromPoints(points);
             const line = new THREE.Line(geometry, globalLineMaterial);
-            selectedObject.push(line);
+
             scene.add(line);
             renderer.render(scene, camera);
 
@@ -452,7 +470,7 @@
             const geometry = new THREE.BufferGeometry().setFromPoints(points);
 
             const line = new THREE.Line(geometry, globalLineMaterial);
-            selectedObject.push(line);
+
             scene.add(line);
             renderer.render(scene, camera);
 
@@ -676,7 +694,6 @@
             const posBtnXPlus = document.querySelector("#posBtnXPlus");
             const btnViewTriangle = document.querySelector("#btnViewTriangle");
             const btnViewCircle = document.querySelector("#btnViewCircle");
-            btnViewTriangle.addEventListener("click", drawTriangle);
             btnViewCircle.addEventListener("click", evt => drawCircleAxis(5));
             posBtnXMinus.addEventListener("click", function () {
                 setCameraPos(0.5, 0, 0, setInputCameraPos);
@@ -691,54 +708,248 @@
             const element = document.createElement('div');
             element.className = 'element';
             element.style.backgroundColor = 'rgba(0,127,127,' + (Math.random() * 0.5 + 0.25) + ')';
-          const details = document.createElement('div');
-          details.className = 'details';
-          details.textContent = "3D LABEL";
-          element.appendChild(details);
-
+            const details = document.createElement('div');
+            details.className = 'details';
+            details.textContent = "3D LABEL";
+            element.appendChild(details);
 
 
             const objectCSS = new CSS3DObject(element);
 
 
-            if(obj == null){
-              scene.add(objectCSS);
-              objectCSS.position.x = -135;
-              objectCSS.position.y = -135;
-            }else{
-              obj.add(objectCSS);
+            if (obj == null) {
+                scene.add(objectCSS);
+                objectCSS.position.x = -135;
+                objectCSS.position.y = -135;
+            } else {
+                obj.add(objectCSS);
             }
 
         }
 
-        function addLabel(obj, label) {
-
-            obj.layers.enableAll();
+        function addLabel(obj, label, x = 0, y = 0, z = 0) {
 
             const labelDiv = document.createElement('div');
             labelDiv.className = 'label';
             labelDiv.textContent = label;
-            labelDiv.style.backgroundColor = 'transparent';
+            // labelDiv.style.backgroundColor = 'transparent';
 
 
             const labelObj = new CSS2DObject(labelDiv);
-            labelObj.position.set(0, 0, 0);
-            labelObj.center.set(0.5, 0.5);
+            labelObj.position.set(x, y - 1, z);
+            labelObj.center.set(0, 0);
             obj.add(labelObj);
             labelObj.layers.set(0);
 
+            return labelObj;
         }
 
 
+        let inputs = [];
+
+        function addInputTag(name = 'inputName', val = 10, disabled, sz = 100) {
+            /*
+<div class="input-group mb-3">
+  <span class="input-group-text" id="basic-addon1">@</span>
+  <input type="text" class="form-control" placeholder="Username"
+  aria-label="Username" aria-describedby="basic-addon1">
+</div>
+            * */
+            let newSpan;
+            let newInput;
+            let colDiv;
+
+            newSpan = document.getElementById( name + "label");
+            newInput = document.getElementById( name + "input");
+            colDiv = document.getElementById( name + "colDiv");
+
+            if(colDiv == null){
+                colDiv = document.createElement("div");
+                colDiv.style.display = "flex";
+                colDiv.className = "input-group";
+                colDiv.id = name + "colDiv";
+                inputGroup.appendChild(colDiv);
+
+
+            }
+
+            if(newSpan == null){
+                newSpan = document.createElement("span");
+
+                newSpan.className = "input-group-text";
+                newSpan.id = name + "label";
+                newSpan.textContent = name;
+                colDiv.appendChild(newSpan);
+
+            }
+
+            if(newInput == null){
+                newInput = document.createElement("input");
+
+                newInput.className = "form-control";
+                newInput.ariaLabel = name + "label";
+                newInput.id = name + "input";
+                newInput.type = "number";
+                newInput.min = "-360";
+
+                newInput.max = "360";
+                newInput.step = "1";
+                newInput.style.zIndex = "1";
+                colDiv.appendChild(newInput);
+                newInput.value = val;
+
+                newInput.disabled = disabled;
+            }
+
+
+
+            return newInput;
+        }
+
+
+
+
+
+        let objsToRemoveAry = [];
+
+
+        function tutorialGeomTriangle(e, x=10, y=7, pt=12.2, angle=34.9){
+            globalLineMaterial = new THREE.LineBasicMaterial({color: 0x00ff00, opacity: 0});
+
+            /*region INIT */
+
+            let xi = addInputTag("x", 10);
+            let yi = addInputTag("y", 7);
+            let hi = addInputTag("h=r", 12.2);
+            let ai = addInputTag("angle", 34.9);
+            let ri = addInputTag("rad", deg2Rad(34.9));
+
+            if(e != null && e != undefined && e.target != undefined) {
+                if(e.target.id == "angleinput"){
+                    console.log("angleInput");
+                    pt = hi.value;
+                    x = (Math.cos(deg2Rad(ai.value))*pt).toPrecision(3);
+                    y = (Math.sin(deg2Rad(ai.value))*pt).toPrecision(3);
+                    xi.value = x;
+                    yi.value = y;
+                    pt = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2)).toPrecision(3);
+
+                }else{
+                    x = xi.value;
+                    y = yi.value;
+                    pt = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2)).toPrecision(3);
+                    angle = rad2Deg(Math.acos( x / pt)).toPrecision(3);
+                    ai.value = angle;
+                }
+            }
+            /*endregion INIT */
+
+
+            /*region REMOVE */
+            for (let i = 0; i < objsToRemoveAry.length; i++) {
+                try{
+                removeObject3D(objsToRemoveAry[i]);
+                }catch(e){
+                }
+            }
+            objsToRemoveAry = [];
+            xi.removeEventListener("change", tutorialGeomTriangle);
+            yi.removeEventListener("change", tutorialGeomTriangle);
+            ai.removeEventListener("change", tutorialGeomTriangle);
+            /*endregion REMOVE */
+
+
+            /*region UPDATE */
+            // let z = 5;
+            pt = Math.abs(pt);
+            let obj = drawTriangle2D(x, y, pt); objsToRemoveAry.push(obj);
+            hi.value = pt;
+            hi.disabled = true;
+            let labelDivX = addLabel(obj, `(${x}, 0)`, x, 0); objsToRemoveAry.push(labelDivX);
+            let labelDivXY = addLabel(obj, `(${x}, ${y})`, x, y); objsToRemoveAry.push(labelDivXY);
+            let labelDiv0 = addLabel(obj, "(0,0)", 0, 0, 0); objsToRemoveAry.push(labelDiv0);
+            let labelDivH = addLabel(obj, "h=" + pt, x / 2, Math.round(y / 2), 0); objsToRemoveAry.push(labelDivH);
+            let labelDivS = addLabel(obj, "sin=" + (y / pt).toPrecision(3), 0, -(pt+3), 0); objsToRemoveAry.push(labelDivS);
+            let labelDivC = addLabel(obj, "cos=" + (x / pt).toPrecision(3), 0, -(pt+5), 0); objsToRemoveAry.push(labelDivC);
+            let labelDivT = addLabel(obj, "tan=" + (x / y).toPrecision(3), 0, -(pt+7), 0); objsToRemoveAry.push(labelDivT);
+            let labelDivP = addLabel(obj, "(0,0)", 0, 0, 0); objsToRemoveAry.push(labelDivP);
+            let cirObj = drawCircleAxis(pt, 48, 360, "Z", 0, null, "obj"); objsToRemoveAry.push(cirObj);
+            ri.value = deg2Rad(ai.value).toPrecision(3)+"";
+
+
+            xi.addEventListener("change", tutorialGeomTriangle);
+            yi.addEventListener("change", tutorialGeomTriangle);
+            ai.addEventListener("change", tutorialGeomTriangle);
+            /*endregion UPDATE */
+
+
+
+        }
+
+        function startTutorialTriangle() {
+            tutorialGeomTriangle(null, 10, 7, 12.2, 34.9);
+        }
+
+        function startTutorialScalarVector(){
+            let xi = addInputTag("X Axis", 10, false, 30);
+            let yi = addInputTag("Y Axis", 7);
+            let zi = addInputTag("Z Axis", 0);
+            let hi = addInputTag("h hyp", 12.2);
+            let ai = addInputTag("d deg", 34.9);
+            let ri = addInputTag("radian", deg2Rad(34.9));
+            let si = addInputTag("scalar", deg2Rad(34.9));
+            let vi = addInputTag("vector", deg2Rad(34.9));
+
+        }
+
+        function removeObject3D(object3D) {
+            if (!(object3D instanceof THREE.Object3D)) return false;
+
+            // for better memory management and performance
+            if (object3D.geometry) object3D.geometry.dispose();
+
+            if (object3D.material) {
+                if (object3D.material instanceof Array) {
+                    // for better memory management and performance
+                    object3D.material.forEach(material => material.dispose());
+                } else {
+                    // for better memory management and performance
+                    object3D.material.dispose();
+                }
+            }
+            object3D.removeFromParent(); // the parent might be the scene or another Object3D, but it is sure to be removed this way
+            return true;
+        }
+
+        let inputGroup = document.getElementById("input-group");
+
+        function SetUI() {
+            inputGroup = document.getElementById("input-group");
+            inputGroup.className = "row ";
+            inputGroup.style.maxWidth = "200px";
+            inputGroup.style.minWidth = "200px";
+            inputGroup.style.left = "10px";
+            inputGroup.style.top = "50px";
+            // inputGroup.style.left = ((canvasX - inputGroup.clientWidth) / 2) + "px";
+            // inputGroup.style.top = (canvasY) + "px";
+
+
+        }
+
         Set3DEnv();
         setOrbit();
-        let sphere =  drawSphereDefault();
-        // addLabel(sphere, "Sphere Label");
-        addLabel3D(sphere);
-
-
+        SetUI();
         eventListen();
+
+
+        // startTutorialTriangle();
+        startTutorialScalarVector();
+
+        // let sphere =  drawSphereDefault();
+        // addLabel(sphere, "Sphere Label");
+        // addLabel3D(sphere);
         // expDrawAxisCircle();
+
 
     </script>
 
@@ -757,7 +968,7 @@
         .element {
             width: 30px;
             height: 30px;
-          border-radius: 5px;
+            border-radius: 5px;
             box-shadow: 0px 0px 12px rgba(0, 255, 255, 0.5);
             border: 1px solid rgba(127, 255, 255, 0.25);
             font-family: "JetBrains Mono";
@@ -789,8 +1000,9 @@
         .label {
             color: #FFF;
             font-family: "JetBrains Mono";
-            padding: 2px;
-            background: rgba(0, 0, 0, .6);
+            padding: 5px 10px 5px 10px;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, .5);
         }
 
         #data {
@@ -887,7 +1099,11 @@
 </div>
 <div id="init"></div>
 
-<div class="canvas" id="main3DCanvas"></div>
+<div class="canvas" id="main3DCanvas">
+    <div id="input-group" style="position: absolute;" class="input-group mb-3">
+
+    </div>
+</div>
 <br/>
 
 <div class="row" id="data">
@@ -1011,7 +1227,7 @@ function drawTriangle(x, y) {
 
   scene.add(line);
 
-  selectedObject.push(line);
+  
   renderer.render(scene, camera);
 }
 

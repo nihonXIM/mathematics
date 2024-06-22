@@ -95,6 +95,21 @@ https://www.mathsisfun.com/
 
 
 ### Visualize and Programming
+#### WEB-GL
+
+* WebGL
+* https://experiments.withgoogle.com/search?q=fluid
+https://registry.khronos.org/webgl/specs/latest/2.0/
+https://github.com/mdn/dom-examples
+https://webglfundamentals.org/
+https://webgl2fundamentals.org/
+https://threejs.org
+https://github.com/mikolalysenko/femgl
+https://github.com/alzwded/webgl-render-fea-hex
+https://experiments.withgoogle.com/search?q=WebGL
+
+#### Practice
+
 * [Geometry](Geometry.md)
 
 

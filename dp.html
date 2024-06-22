@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"/>
+    <link rel="stylesheet" href="../vendor/bootstrap/css/bootstrap.css">
+    <link rel="stylesheet" href="../vendor/highlight/styles/dark.min.css">
+    <script src="../vendor/bootstrap/js/bootstrap.js"></script>
+    <script src="../vendor/highlight/highlight.min.js"></script>
+    <script src="../vendor/highlight/languages/javascript.min.js"></script>
+    <script type="importmap">
+        {
+          "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three/examples/jsm/"
+          }
+        }
+    </script>
+
+    <script type="module">
+
+        /*region Interface */
+        const MyInterface = {
+            method1: function () { },
+            method2: function (param1, param2) { },
+        };
+        class MyClass {
+            method1() {
+                console.log("Method 1 called");
+            }
+
+            method2(param1, param2) {
+                console.log(
+                    `Method 2 called with ${param1} and ${param2}`);
+            }
+        }
+
+        function implementsInterface(obj, interfaceObj) {
+            for (const method in interfaceObj) {
+                if (!(method in obj) ||
+                    typeof obj[method] !== "function") {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        const myObject = new MyClass();
+
+        if (implementsInterface(myObject, MyInterface)) {
+            console.log(
+                "myObject implements MyInterface");
+        } else {
+            console.log(
+                "myObject does not implement MyInterface");
+        }
+
+        /*endregion Interface */
+
+
+        /*region extendsDate */
+        class DateFormatter extends Date {
+            getFormattedDate() {
+                const months = [
+                    'Jan',
+                    'Feb',
+                    'Mar',
+                    'Apr',
+                    'May',
+                    'Jun',
+                    'Jul',
+                    'Aug',
+                    'Sep',
+                    'Oct',
+                    'Nov',
+                    'Dec',
+                ];
+                return `${this.getDate()}-${months[this.getMonth()]}-${this.getFullYear()}`;
+            }
+        }
+
+        console.log(new DateFormatter('August 19, 1975 23:15:30').getFormattedDate());
+        // Expected output: "19-Aug-1975"
+        class Polygon {
+            constructor() {
+                this.name = 'Polygon';
+            }
+        }
+
+        const poly1 = new Polygon();
+
+        console.log(poly1.name);
+        // Expected output: "Polygon"
+        /*endregion extendsDate */
+
+
+
+
+        /*region extends */
+        class Person {
+            name;
+            age;
+            constructor(name, age) {
+                this.name = name;
+                this.age = age;
+            }
+
+            // constructor(properties) {
+            //     Object.assign(this, properties);
+            // }
+        }
+
+        class Professor extends Person {
+            name = `Professor ${this.name}`;
+        }
+
+        console.log(new Professor("Radev", 54).name); // "Professor Radev"
+
+        /*endregion extends */
+
+
+
+        /*region Derived */
+        class Base {
+            set field(val) {
+                console.log(val);
+            }
+        }
+
+        class DerivedWithField extends Base {
+            field = 1;
+        }
+
+        const instance = new DerivedWithField(); // No log
+
+        class DerivedWithConstructor extends Base {
+            constructor() {
+                super();
+                this.field = 1;
+            }
+        }
+
+        const instance2 = new DerivedWithConstructor(); // Logs 1
+
+        /*endregion Derived */
+
+
+        /*region static */
+
+
+        class ClassWithStaticMethod {
+            static staticProperty = 'someValue';
+            static staticMethod() {
+                return 'static method has been called.';
+            }
+            static {
+                console.log('Class static initialization block called');
+            }
+        }
+
+        console.log(ClassWithStaticMethod.staticProperty);
+        // Expected output: "someValue"
+        console.log(ClassWithStaticMethod.staticMethod());
+        // Expected output: "static method has been called."
+
+        /*endregion static */
+
+
+        /*region privateField */
+
+
+        class Stamper extends class {
+            // A base class whose constructor returns the object it's given
+            constructor(obj) {
+                return obj;
+            }
+        } {
+            // This declaration will "stamp" the private field onto the object
+            // returned by the base class constructor
+            #stamp = 42;
+            static getStamp(obj) {
+                return obj.#stamp;
+            }
+        }
+
+        const obj1 = {};
+        new Stamper(obj1);
+        // `Stamper` calls `Base`, which returns `obj`, so `obj` is
+        // now the `this` value. `Stamper` then defines `#stamp` on `obj`
+
+        console.log(obj1); // In some dev tools, it shows {#stamp: 42}
+        console.log(Stamper.getStamp(obj1)); // 42
+        console.log(obj1 instanceof Stamper); // false
+
+        // You cannot stamp private properties twice
+        new Stamper(obj1); // Error: Initializing an object twice is an error with private fields
+
+
+
+
+
+        class ClassWithPrivateStaticField {
+            static #privateStaticField = 42;
+
+            static publicStaticMethod() {
+                // When invoked through super, `this` still refers to Subclass
+                return this.#privateStaticField;
+            }
+        }
+
+        class Subclass extends ClassWithPrivateStaticField {
+            static callSuperMethod() {
+                return super.publicStaticMethod();
+            }
+        }
+
+        Subclass.callSuperMethod(); // TypeError: Cannot read private member #privateStaticField from an object whose class did not declare it
+
+
+        class ClassWithPrivateMethod {
+            #privateMethod() {
+                return 42;
+            }
+
+            publicMethod() {
+                return this.#privateMethod();
+            }
+        }
+
+
+        const instance1 = new ClassWithPrivateMethod();
+        console.log(instance1.publicMethod()); // 42
+
+
+        class ClassWithPrivateAccessor {
+            #message;
+
+            get #decoratedMessage() {
+                return `🎬${this.#message}🛑`;
+            }
+            set #decoratedMessage(msg) {
+                this.#message = msg;
+            }
+
+            constructor() {
+                this.#decoratedMessage = "hello world";
+                console.log(this.#decoratedMessage);
+            }
+        }
+
+        new ClassWithPrivateAccessor(); // 🎬hello world🛑
+
+        class ClassWithPrivateStaticMethod {
+            static #privateStaticMethod() {
+                return 42;
+            }
+
+            static publicStaticMethod() {
+                return this.#privateStaticMethod();
+            }
+        }
+
+        class Subclass1 extends ClassWithPrivateStaticMethod {}
+
+        console.log(Subclass1.publicStaticMethod()); // TypeError: Cannot read priva
+
+
+        class PrivateConstructor {
+            static #isInternalConstructing = false;
+
+            constructor() {
+                if (!PrivateConstructor.#isInternalConstructing) {
+                    throw new TypeError("PrivateConstructor is not constructable");
+                }
+                PrivateConstructor.#isInternalConstructing = false;
+                // More initialization logic
+            }
+
+            static create() {
+                PrivateConstructor.#isInternalConstructing = true;
+                const instance2 = new PrivateConstructor();
+                return instance2;
+            }
+        }
+
+        new PrivateConstructor(); // TypeError: PrivateConstructor is not constructable
+        PrivateConstructor.create(); // PrivateConstructor {}
+        /*endregion privateField */
+    </script>
+    <body>
+
+<div class="container text-center">
+    <div class="row">
+        <div class="col">
+        </div>
+        <div class="col">
+            <div class="btn-group" role="group" aria-label="Basic example">
+                <a href="../importmap/index.html"
+                   class="btn btn-primary stretched-link">ImportMap</a>
+                <a href="http://www.google.com"
+                   class="btn btn-primary stretched-link">Google</a>
+                <a href="https://threejs.org/docs/index.html#manual/en/introduction/Creating-a-scene/"
+                   class="btn btn-primary stretched-link">ThreeJS</a>
+                <a href="https://getbootstrap.com/docs/5.3/getting-started/introduction/"
+                   class="btn btn-primary stretched-link">Bootstrap</a>
+                <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/"
+                   class="btn btn-primary stretched-link">Javascript</a>
+                <a href="https://fonts.google.com/icons" class="btn btn-primary stretched-link">GoogleIcons</a>
+            </div>
+        </div>
+        <div class="col">
+        </div>
+    </div>
+</div>
+<div id="init"></div>
+
+<div class="canvas" id="main3DCanvas">
+    <div id="input-group" style="position: absolute;" class="input-group mb-3">
+
+    </div>
+</div>
+<br/>
+</body>
+</head>
+</html>
