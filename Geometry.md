@@ -9,7 +9,9 @@
 3rad = 1PI
 rad = 57....deg
 
-## Scalar
+
+
+## Scalar => Return Type : Number
 ### 2D Scalar
 * scalar = sqrt(pow(x, 2)+pow(y, 2))
 * x=3, y=4, s=5..
@@ -21,15 +23,17 @@ rad = 57....deg
 
 
 
-## Vector
+## Vector => Return Type : Axis(x, y, z)
 (x, y)/sqrt(pow(x)+pow(y))
 (x, y, z)/sqrt(pow(x)+pow(y)+pow(z))
 * 3 4 => (x/5, y/5) = (cos(theta), sin(theta)) = Normalized Vector
 * 3 4 5 => (x/7.., y/7.., z/7..) = Normalized Vector
 * Normalized Vector * Scalar = Position = (x, y, z)
 
+## ArcCosine => InputType = Cos(θ)|Rate, Return Type : Radian
+## Cosine => InputType = Radian, Return Type : Rate|Cos(θ)
 
-## Dot Product
+## Dot Product => Return Type : Number
 ![img_11.png](img_11.png)
 
 
@@ -79,13 +83,25 @@ Math.acos(0.7)
 
 ```
 
+## Cross Product = ReturnType : Axis(3, 4, 5)
+![img_12.png](img_12.png)
 
-### 
-|a| × |b| × cos(θ) = |a| × cos(θ) × |b|
+### Expression
+* X = Cross Product
+* × = Multiplication, 3 × 4 = 12
+* n = normalize
+* A X B = Cross Product
 
+### Formula1 
+* A X B = |A| × |B| × sin(θ) × n
+* sin(θ) = (A×B) / (|A|*|B|*N)
+* n = (A×B) / (|A|*|B|*sin(θ))
 
-
-
+### Formula2
+* A×B = (Cx, Cy, Cz)
+* Cx = Ay*Bz − Az*By
+* Cy = Az*Bx − Ax*Bz
+* Cz = Ax*By − Ay*Bx
 
 
 # Inside Function Codes
