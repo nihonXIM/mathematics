@@ -36,6 +36,7 @@ rad = 57....deg
 ## Dot Product => Return Type : Number
 ![img_11.png](img_11.png)
 
+* ドット積は新しい絶対値としての役割
 
 ### Formula1
 * A · B = |A| × |B| × cos(θ)
@@ -89,19 +90,25 @@ Math.acos(0.7)
 ### Expression
 * X = Cross Product
 * × = Multiplication, 3 × 4 = 12
-* n = normalize
+* N = normalized vector
 * A X B = Cross Product
 
 ### Formula1 
-* A X B = |A| × |B| × sin(θ) × n
-* sin(θ) = (A×B) / (|A|*|B|*N)
-* n = (A×B) / (|A|*|B|*sin(θ))
+* A X B = |A| × |B| × sin(θ) × N
+* sin(θ) = (A X B) / (|A| × |B| × N)
+* N = (A X B) / (|A| × |B| × sin(θ))
+
+Dot Productで演算したcos(θ)を利用して\
+cos-1(cos(θ)) => sin(radian)
 
 ### Formula2
 * A×B = (Cx, Cy, Cz)
 * Cx = Ay*Bz − Az*By
 * Cy = Az*Bx − Ax*Bz
 * Cz = Ax*By − Ay*Bx
+
+### Examples
+
 
 
 # Inside Function Codes
