@@ -36,7 +36,6 @@ rad = 57....deg
 ## Dot Product => Return Type : Number
 ![img_11.png](img_11.png)
 
-* ドット積は新しい絶対値としての役割
 
 ### Formula1
 * A · B = |A| × |B| × cos(θ)
@@ -44,6 +43,19 @@ rad = 57....deg
 * |B| is the magnitude (length, scalar, radius) of vector B
 ### Formula2
 *  A · B = (Ax × Bx) + (Ay × By)
+#### Derived
+![img_13.png](img_13.png)
+```text
+1. Pythagorean theory
+c^2 = a^2 + b^2
+
+2. A, Bの二つの座標はどこにあっても(0, 0, 0)で基準化することが可能です。
+3. ドット積は新しい絶対値としての役割
+
+Ax * Bx => a^2　
+Ay * By => b^2
+
+```
 
 ### Examples 2D
 ```text
