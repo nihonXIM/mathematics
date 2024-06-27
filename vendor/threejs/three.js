@@ -25977,7 +25977,7 @@
 
 				for (let i = 0, l = shapeVertices.length; i < l; i++) {
 					const vertex = shapeVertices[i];
-					vertices.push(vertex.x, vertex.y, 0);
+					vertices.push(vertex.x, vertex.y, vertex.z);
 					normals.push(0, 0, 1);
 					uvs.push(vertex.x, vertex.y); // world uvs
 				} // incides
@@ -34418,7 +34418,8 @@
 			geometry.setAttribute('color', new Float32BufferAttribute(colors, 3));
 			const material = new LineBasicMaterial({
 				vertexColors: true,
-				toneMapped: false
+				toneMapped: false,
+
 			});
 			super(geometry, material);
 			this.type = 'GridHelper';

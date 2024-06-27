@@ -5,973 +5,28 @@
     <meta name="viewport"
           content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-
-    <script type="importmap">
-        {
-          "imports": {
-            "three": "https://cdn.jsdelivr.net/npm/three/build/three.module.js",
-            "three/addons/": "https://cdn.jsdelivr.net/npm/three/examples/jsm/"
-          }
-        }
-    </script>
-
-    <script type="module">
-        import * as THREE from 'three';
-        import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
-        import {GUI} from 'three/addons/libs/lil-gui.module.min.js';
-        import {CSS2DRenderer, CSS2DObject} from 'three/addons/renderers/CSS2DRenderer.js';
-        import {CSS3DRenderer, CSS3DObject} from 'three/addons/renderers/CSS3DRenderer.js';
-
-
-        let scene;
-        let camera;
-        let renderer;
-        let labelRenderer;
-        let css3DRenderer;
-        let selectedObject = [];
-        let intervals;
-        let globalOffset = new THREE.Vector3(0, 0, 0);
-        let globalLineMaterial = new THREE.LineBasicMaterial({color: 0x33ff33});
-        let globalMaterial;
-        let gui;
-        const layers = {
-
-            'Toggle Name': function () {
-
-                camera.layers.toggle(0);
-
-            },
-            'Toggle Mass': function () {
-
-                camera.layers.toggle(1);
-
-            },
-            'Enable All': function () {
-
-                camera.layers.enableAll();
-
-            },
-
-            'Disable All': function () {
-
-                camera.layers.disableAll();
-
-            }
-
-        };
-        let canvasX;
-        let canvasY;
-        let canvas;
-        let frameRate = 1000 / 24;
-        let controls;
-        let gi = 0;
-
-
-        function Set3DEnv() {
-
-
-            globalMaterial = new THREE.MeshPhongMaterial({
-                specular: 0x333333,
-                shininess: 5,
-                color: 0x88ff88,
-                // map: textureLoader.load( 'textures/planets/earth_atmos_2048.jpg' ),
-                // specularMap: textureLoader.load( 'textures/planets/earth_specular_2048.jpg' ),
-                // normalMap: textureLoader.load( 'textures/planets/earth_normal_2048.jpg' ),
-                // normalScale: new THREE.Vector2( 0.85, 0.85 )
-            });
-
-
-            const gridHelperXYColor1 = new THREE.Color(0x333333);
-            const gridHelperXYColor2 = new THREE.Color(0x333333);
-            const gridHelperYZColor1 = new THREE.Color(0x333333);
-            const gridHelperYZColor2 = new THREE.Color(0x333333);
-
-            scene = new THREE.Scene();
-
-            canvas = document.getElementById("main3DCanvas");
-            canvasX = canvas.clientWidth;
-            canvasY = canvas.clientHeight;
-
-// init
-
-            camera = new THREE.PerspectiveCamera(60, canvasX / canvasY, 0.01, 1000);
-            camera.position.z = 50;
-            camera.position.y = 1;
-            camera.layers.enableAll();
-
-
-            const dirLight = new THREE.DirectionalLight(0xffffff, 1);
-            dirLight.position.set(2, 5, 1);
-            dirLight.layers.enableAll();
-            scene.add(dirLight);
-
-            const size = 100;
-            const divisions = 100;
-
-
-            const gridHelperXY = new THREE.GridHelper(size, divisions, gridHelperXYColor1, gridHelperXYColor2);
-            const gridHelperYZ = new THREE.GridHelper(size, divisions, gridHelperYZColor1, gridHelperYZColor2);
-            scene.add(gridHelperXY);
-            // scene.add(gridHelperYZ);
-
-            gridHelperXY.rotation.x = deg2Rad(90);
-            gridHelperYZ.rotation.y = deg2Rad(90);
-
-
-            renderer = new THREE.WebGLRenderer({antialias: true});
-
-
-            renderer.setSize(canvasX, canvasY);
-            renderer.setPixelRatio(window.devicePixelRatio);
-            canvas.appendChild(renderer.domElement);
-
-
-            labelRenderer = new CSS2DRenderer();
-            labelRenderer.setSize(canvasX, canvasY);
-            labelRenderer.domElement.style.position = 'absolute';
-            labelRenderer.domElement.style.top = '0px';
-
-            canvas.appendChild(labelRenderer.domElement);
-
-
-            const axesHelper = new THREE.AxesHelper(5);
-            axesHelper.layers.enableAll();
-            scene.add(axesHelper);
-
-
-            css3DRenderer = new CSS3DRenderer();
-            css3DRenderer.setSize(canvasX, canvasY);
-            css3DRenderer.domElement.style.position = 'absolute';
-            css3DRenderer.domElement.style.top = '0px';
-
-            canvas.appendChild(css3DRenderer.domElement);
-
-            renderer.render(scene, camera);
-            labelRenderer.render(scene, camera);
-            css3DRenderer.render(scene, camera);
-
-            initGui();
-
-// animation
-
-        }
-
-
-        function setGridHelper() {
-        }
-
-
-        function setGlobalOffset(x, y, z) {
-            globalOffset = new THREE.Vector3(x, y, z);
-        }
-
-
-        function setGlobalLineMaterial(color) {
-            let hex = parseInt(color.replace(/^#/, ''), 16);
-            globalLineMaterial = new THREE.LineBasicMaterial({
-                color: 0xffffff,
-                linewidth: 3,
-                linecap: 'round', //ignored by WebGLRenderer
-                linejoin: 'round' //ignored by WebGLRenderer
-            });
-        }
-
-        function setOrbit() {
-
-            controls = new OrbitControls(camera, css3DRenderer.domElement);
-
-//controls.update() must be called after any manual changes to the camera's transform
-            controls.update();
-            animateOrbit();
-            // renderer.setAnimationLoop( animateOrbit );
-        }
-
-
-        function initGui() {
-
-            gui = new GUI();
-
-            gui.title('Camera Layers');
-
-            gui.add(layers, 'Toggle Name');
-            gui.add(layers, 'Toggle Mass');
-            gui.add(layers, 'Enable All');
-            gui.add(layers, 'Disable All');
-
-            gui.open();
-
-        }
-
-        function animateOrbit() {
-
-            setTimeout(() => {
-                requestAnimationFrame(animateOrbit);
-                renderer.render(scene, camera);
-                labelRenderer.render(scene, camera);
-                css3DRenderer.render(scene, camera);
-            }, frameRate);
-
-            // required if controls.enableDamping or controls.autoRotate are set to true
-            // controls.update();
-        }
-
-        function drawTriangle2D(x = 4, y = 3) {
-
-            const points = [];
-
-            points.push(new THREE.Vector3(0, 0, 0));
-            points.push(new THREE.Vector3(Number(x), 0, 0));
-            points.push(new THREE.Vector3(Number(x), Number(y), 0));
-            points.push(new THREE.Vector3(0, 0, 0));
-
-            const geometry = new THREE.BufferGeometry().setFromPoints(points);
-
-            const heartShape = new THREE.Shape().setFromPoints(points);
-            //
-            // heartShape.moveTo( 0, 0);
-            // heartShape.lineTo( x, 0);
-            // heartShape.lineTo( x, y);
-            // heartShape.lineTo( 0, 0);
-
-            const geometryMesh = new THREE.ShapeGeometry( heartShape );
-            globalMaterial = new THREE.MeshBasicMaterial( { color: 0xffff33, transparent: true, opacity: 0.2 } );
-
-            const line = new THREE.Line(geometry, globalLineMaterial);
-            const mesh = new THREE.Mesh(geometryMesh, globalMaterial);
-            line.add(mesh);
-
-            scene.add(line);
-
-            renderer.render(scene, camera);
-
-            return line;
-        }
-
-
-        function drawSphereDefault() {
-            const geometry = new THREE.SphereGeometry(1, 36, 36);
-            const sphere = new THREE.Mesh(geometry, globalMaterial);
-
-            scene.add(sphere);
-            return sphere;
-        }
-
-        function drawCube() {
-            const geometry = new THREE.BoxGeometry(1, 1, 1);
-            const cube = new THREE.Mesh(geometry, globalMaterial);
-
-            scene.add(cube);
-            return cube;
-        }
-
-        function drawVerticalLine(pointInfo) {
-            globalLineMaterial = new THREE.LineBasicMaterial({color: 0x33ff33});
-
-
-            for (let i = 0; i < pointInfo[0].length; i++) {
-                const points = [];
-                for (let j = 0; j < pointInfo.length; j++) {
-                    points.push(pointInfo[j][i]);
-                }
-                const geometry = new THREE.BufferGeometry().setFromPoints(points);
-
-                const line = new THREE.Line(geometry, globalLineMaterial);
-                scene.add(line);
-
-            }
-
-            renderer.render(scene, camera);
-
-
-        }
-
-        function drawSphereAxis(r, s, a, axis) {
-            if (r == null) r = 5;
-            if (s == null) s = 36;
-            if (a == null) a = 360;
-            if (axis == null) axis = 'Z';
-
-            let pointsGrp = [];
-
-            let segmentPerAngle = a / s;
-            for (let i = 0; i < s; i++) {
-                let nextUnitAngle = segmentPerAngle * i;
-                let nextCircleRadius = Math.cos(deg2Rad(nextUnitAngle)) * r;
-                let zOffset = Math.sin(deg2Rad(nextUnitAngle)) * r;
-                pointsGrp.push(drawCircleAxis(nextCircleRadius, s, a, axis, zOffset));
-            }
-
-
-            renderer.render(scene, camera);
-
-            return pointsGrp;
-        }
-
-        function drawSphereAltitude(sphereRadius, circleSegment, sphereAngle, sphereSegment) {
-            if (sphereRadius == null) sphereRadius = 3;
-            if (circleSegment == null) circleSegment = 36;
-            if (sphereAngle == null) sphereAngle = 360;
-            if (sphereSegment == null) sphereSegment = 30;
-
-            let segmentPerAngle = sphereAngle / sphereSegment;
-            for (let i = 0; i < sphereSegment; i++) {
-                let nextUnitAngle = segmentPerAngle * i;
-                let nextCircleRadius = Math.cos(deg2Rad(nextUnitAngle)) * sphereRadius;
-                let zOffset = Math.sin(deg2Rad(nextUnitAngle)) * sphereRadius;
-                drawCircle(nextCircleRadius, circleSegment, sphereAngle, zOffset);
-            }
-
-            for (let i = 0; i < sphereSegment; i++) {
-                let nextUnitAngle = segmentPerAngle * i;
-                let nextCircleRadius = Math.cos(deg2Rad(nextUnitAngle)) * sphereRadius;
-                let zOffset = Math.sin(deg2Rad(nextUnitAngle)) * sphereRadius;
-                drawCircle(nextCircleRadius, circleSegment, sphereAngle, zOffset);
-            }
-            renderer.render(scene, camera);
-        }
-
-        function drawCircle(r, seg, angle, z) {
-            if (r == null) r = 3;
-            if (seg == null) seg = 24;
-            if (angle == null) angle = 360;
-            if (z == null) z = 0;
-
-            let ua = angle / seg;
-
-            globalLineMaterial = new THREE.LineBasicMaterial({color: 0xffff00});
-
-            const points = [];
-
-            for (let i = 0; i < seg + 1; i++) {
-                const nDeg = i * ua;
-                const xPos = Math.cos(deg2Rad(nDeg)) * r;
-                const yPos = Math.sin(deg2Rad(nDeg)) * r;
-                points.push(new THREE.Vector3(xPos, yPos, z));
-            }
-
-            const geometry = new THREE.BufferGeometry().setFromPoints(points);
-
-            const line = new THREE.Line(geometry, material);
-
-            scene.add(line);
-            renderer.render(scene, camera);
-        }
-
-        function drawCircleAxis(r, seg, angle, axisName, axisVal, split, returnType) {
-            if (r == null) r = 3;
-            if (seg == null) seg = 24;
-            if (angle == null) angle = 360;
-            if (axisName == null) axisName = 'Z';
-            if (axisVal == null) axisVal = 0;
-
-
-            let a = 0;
-            let b = 0;
-            let c = 0;
-
-
-            let ua = angle / seg;
-
-
-            const points = [];
-
-            for (let i = 0; i < seg + 1; i++) {
-                const nDeg = i * ua;
-                const nRad = deg2Rad(nDeg);
-                const cos = Math.cos(nRad);
-                const sin = Math.sin(nRad);
-                const cosAxisPos = cos * r;
-                const sinAxisPos = sin * r;
-
-                points.push(axisChange(globalOffset.x + cosAxisPos, globalOffset.y + sinAxisPos, globalOffset.z + axisVal, axisName));
-            }
-            const geometry = new THREE.BufferGeometry().setFromPoints(points);
-
-            const line = new THREE.Line(geometry, globalLineMaterial);
-
-            scene.add(line);
-            renderer.render(scene, camera);
-
-            let splitPoints = [];
-            if (split != null) {
-                for (let i = 0; i < split; i++) {
-                    const nDeg = i * (360 / split);
-                    const nRad = deg2Rad(nDeg);
-                    const cos = Math.cos(nRad);
-                    const sin = Math.sin(nRad);
-                    const cosAxisPos = cos * r;
-                    const sinAxisPos = sin * r;
-                    splitPoints.push(axisChange(globalOffset.x, globalOffset.y, axisVal + globalOffset.z, axisName));
-                    splitPoints.push(axisChange(cosAxisPos + globalOffset.x, sinAxisPos + globalOffset.y, axisVal + globalOffset.z, axisName));
-                    const geometrySplit = new THREE.BufferGeometry().setFromPoints(splitPoints);
-                    const lineSplit = new THREE.Line(geometrySplit, globalLineMaterial);
-
-                    scene.add(lineSplit);
-                }
-                renderer.render(scene, camera);
-            }
-
-            points.push(points[0]);
-
-            if (returnType == "obj") {
-                return line;
-            } else {
-                return points;
-            }
-        }
-
-        function drawLineFromTo(from, to) {
-            let points = [];
-
-            if (from == undefined) return false;
-            if (to == undefined) return false;
-
-
-            points.push(from);
-            points.push(to);
-
-            const geometry = new THREE.BufferGeometry().setFromPoints(points);
-            const line = new THREE.Line(geometry, globalLineMaterial);
-
-            scene.add(line);
-            renderer.render(scene, camera);
-
-        }
-
-        function drawSineWave(r, seg, angle, axisName, axisVal) {
-            if (r == null) r = 3;
-            if (seg == null) seg = 24;
-            if (angle == null) angle = 360;
-            if (axisName == null) axisName = 'Z';
-            if (axisVal == null) axisVal = 0;
-
-
-            let a = 0;
-            let b = 0;
-            let c = 0;
-
-
-            let ua = angle / seg;
-
-
-            const points = [];
-
-            for (let i = 0; i < seg + 1; i++) {
-                const nDeg = i * ua;
-                const nRad = deg2Rad(nDeg);
-                const cos = Math.cos(nRad);
-                const sin = Math.sin(nRad);
-                const cosAxisPos = cos * r;
-                const sinAxisPos = sin * r;
-
-                points.push(axisChange(nRad, sinAxisPos, axisVal, axisName));
-            }
-
-            const geometry = new THREE.BufferGeometry().setFromPoints(points);
-
-            const line = new THREE.Line(geometry, globalLineMaterial);
-
-            scene.add(line);
-            renderer.render(scene, camera);
-
-            return points;
-        }
-
-        function axisChange(cosAxisPos, sinAxisPos, axisVal, axisName) {
-
-            /*
-            * Z => (cos, sin, axisVal)
-            * Y => (cos, axisVal, sin)
-            * X => (axisVal, sin, cos)
-            * */
-
-            if (axisName == 'Z') {
-                return new THREE.Vector3(cosAxisPos, sinAxisPos, axisVal);
-
-            } else if (axisName == 'Y') {
-                return new THREE.Vector3(cosAxisPos, axisVal, sinAxisPos);
-
-            } else if (axisName == 'X') {
-                return new THREE.Vector3(axisVal, sinAxisPos, cosAxisPos);
-            }
-        }
-
-        function setCameraPos(x, y, z, callback) {
-            camera.position.set(camera.position.x + x, camera.position.y + y, camera.position.z + z);
-            renderer.render(scene, camera);
-            if (callback != null) callback();
-        }
-
-        function getCameraPos() {
-            return [camera.position.x, camera.position.y, camera.position.z]
-        }
-
-        function getCameraRot() {
-            return [camera.rotation.x, camera.rotation.y, camera.rotation.z]
-        }
-
-        function setCameraRot(x, y, z, callback) {
-            camera.rotation.x += deg2Rad(x);
-            camera.rotation.y += deg2Rad(y);
-            camera.rotation.z += deg2Rad(z);
-            if (callback != null) callback();
-            renderer.render(scene, camera);
-        }
-
-        function setCameraLookAt(x, y, z) {
-            camera.lookAt(0, 0, 0);
-        }
-
-        function rotateObjectByInterval(intv) {
-            if (intv == null) intv = 36;
-            intv = intv / 1000;
-            if (selectedObject.length == 0) return false;
-            if (intervals != null) clearInterval(intervals);
-            intervals = setInterval(() => {
-                // selectedObject.rotation.x += 0.01;
-                for (let i = 0; i < selectedObject.length; i++) {
-                    selectedObject[i].rotation.x += 0.01;
-                    selectedObject[i].rotation.y += 0.01;
-                }
-                renderer.render(scene, camera);
-            }, intv);
-        }
-
-        function stopAnim() {
-            if (intervals != null) clearInterval(intervals);
-
-        }
-
-        function deg2Rad(deg) {
-            return deg / 360 * (Math.PI * 2);
-        }
-
-
-        function rad2Deg(rad) {
-            return rad / (Math.PI * 2) * 360;
-        }
-
-
-        function Curse() {
-
-            // import("./main.js").then((module) => {
-            //   // Do something with the module.
-            //   module1 = module ;
-            //   Set3DEnv();
-            //   setInputCameraPos();
-            //   setInputCameraRot();
-            //   setInputCameraPos();
-            //   setInputCameraRot();
-            // });
-            // setInputCameraPos();
-            // setInputCameraRot();
-            // setInputCameraPos();
-            // setInputCameraRot();
-
-            // drawCube();
-            /*
-
-
-            drawTriangle();
-
-            drawRadianAndDegree();
-
-            drawCircleAxis();
-
-            expDrawSinWave();
-            expDrawCosWave();
-            expDrawTanWave();
-
-
-            drawSphereAxis();
-
-            scalarAndVector();
-            //magnitude
-            //direction
-
-            calculateVectorMinus();
-            calculateVectorPlus();
-
-
-
-            thetaBetweenTwoVector();
-
-            dotProduct();
-            crossProduct();
-
-
-            */
-
-
-            // expDrawSineWave();
-
-        }
-
-        async function expDrawSineWave() {
-            let animTime = 40;
-            setGlobalOffset(-1, 0, 0);
-            let circleVertex = drawCircleAxis(1, 96, 720, 'Z', 0, 48);
-            setGlobalOffset(0, 0, 0);
-            let sinVertex = drawSineWave(1, 96, 720, 'Z', 0);
-            gi = 0;
-            setGlobalLineMaterial("#6be670");
-            animSineWaveToCircleLine(circleVertex, sinVertex, sinVertex.length, animTime);
-
-            setTimeout(() => {
-                setGlobalLineMaterial("#00d0ff");
-                setGlobalOffset(-5, 0, 0);
-                circleVertex = drawCircleAxis(5, 96, 720, 'Z', 0, 48);
-                setGlobalOffset(0, 0, 0);
-                sinVertex = drawSineWave(5, 96, 720, 'Z', 0);
-                gi = 0;
-                animSineWaveToCircleLine(circleVertex, sinVertex, sinVertex.length, animTime);
-            }, 5000);
-
-        }
-
-        async function animSineWaveToCircleLine(a, b, maxLen, time) {
-
-            setTimeout(() => {
-                gi += 1;
-                drawLineFromTo(a[gi], b[gi]);
-                if (gi < maxLen) {
-                    animSineWaveToCircleLine(a, b, maxLen, time);
-                }
-            }, time);
-        }
-
-
-        function expDrawAxisCircle() {
-            drawCircleAxis(5, 36, 360, 'X');
-            drawCircleAxis(5, 36, 360, 'Y');
-            drawCircleAxis(5, 36, 360, 'Z');
-        }
-
-        function expDraw3DSphere() {
-            let pointInfo = drawSphereAxis(5, 36, 360, 'Y');
-            drawVerticalLine(pointInfo);
-        }
-
-        function expDrawTriangleExam() {
-            drawTriangle(4, 3);
-            drawTriangle(-4, 3);
-            drawTriangle(4, -3);
-            drawTriangle(-4, -3);
-        }
-
-
-        function setInputCameraPos() {
-
-            let cameraPosId = document.getElementById("cameraPosId");
-            let inputs = cameraPosId.getElementsByTagName("input");
-            let curCamPos = getCameraPos();
-            for (let i = 0; i < inputs.length; i++) {
-                inputs[i].value = curCamPos[i];
-            }
-        }
-
-        function setInputCameraRot() {
-            let cameraPosId = document.getElementById("cameraRotId");
-            let inputs = cameraPosId.getElementsByTagName("input");
-            let curCamPos = getCameraRot();
-            for (let i = 0; i < inputs.length; i++) {
-                inputs[i].value = rad2Deg(curCamPos[i]);
-            }
-        }
-
-        function setCameraPosBind(x, y, z, callback) {
-            console.log("setCameraPosBind");
-            setCameraPos(0.5, 0, 0);
-            // if(x == null) x=0.01;
-            // if(y == null) y=0.01;
-            // if(z == null) z=0.01;
-            // setCameraPos(x, y, z, callback);
-        }
-
-
-        function eventListen() {
-            const posBtnXMinus = document.querySelector("#posBtnXMinus");
-            const posBtnXPlus = document.querySelector("#posBtnXPlus");
-            const btnViewTriangle = document.querySelector("#btnViewTriangle");
-            const btnViewCircle = document.querySelector("#btnViewCircle");
-            btnViewCircle.addEventListener("click", evt => drawCircleAxis(5));
-            posBtnXMinus.addEventListener("click", function () {
-                setCameraPos(0.5, 0, 0, setInputCameraPos);
-            });
-            posBtnXPlus.addEventListener("click", function () {
-                setCameraPos(-0.5, 0, 0, setInputCameraPos);
-            });
-        }
-
-        function addLabel3D(obj) {
-
-            const element = document.createElement('div');
-            element.className = 'element';
-            element.style.backgroundColor = 'rgba(0,127,127,' + (Math.random() * 0.5 + 0.25) + ')';
-            const details = document.createElement('div');
-            details.className = 'details';
-            details.textContent = "3D LABEL";
-            element.appendChild(details);
-
-
-            const objectCSS = new CSS3DObject(element);
-
-
-            if (obj == null) {
-                scene.add(objectCSS);
-                objectCSS.position.x = -135;
-                objectCSS.position.y = -135;
-            } else {
-                obj.add(objectCSS);
-            }
-
-        }
-
-        function addLabel(obj, label, x = 0, y = 0, z = 0) {
-
-            const labelDiv = document.createElement('div');
-            labelDiv.className = 'label';
-            labelDiv.textContent = label;
-            // labelDiv.style.backgroundColor = 'transparent';
-
-
-            const labelObj = new CSS2DObject(labelDiv);
-            labelObj.position.set(x, y - 1, z);
-            labelObj.center.set(0, 0);
-            obj.add(labelObj);
-            labelObj.layers.set(0);
-
-            return labelObj;
-        }
-
-
-        let inputs = [];
-
-        function addInputTag(name = 'inputName', val = 10, disabled, sz = 100) {
-            /*
-<div class="input-group mb-3">
-  <span class="input-group-text" id="basic-addon1">@</span>
-  <input type="text" class="form-control" placeholder="Username"
-  aria-label="Username" aria-describedby="basic-addon1">
-</div>
-            * */
-            let newSpan;
-            let newInput;
-            let colDiv;
-
-            newSpan = document.getElementById( name + "label");
-            newInput = document.getElementById( name + "input");
-            colDiv = document.getElementById( name + "colDiv");
-
-            if(colDiv == null){
-                colDiv = document.createElement("div");
-                colDiv.style.display = "flex";
-                colDiv.className = "input-group";
-                colDiv.id = name + "colDiv";
-                inputGroup.appendChild(colDiv);
-
-
-            }
-
-            if(newSpan == null){
-                newSpan = document.createElement("span");
-
-                newSpan.className = "input-group-text";
-                newSpan.id = name + "label";
-                newSpan.textContent = name;
-                colDiv.appendChild(newSpan);
-
-            }
-
-            if(newInput == null){
-                newInput = document.createElement("input");
-
-                newInput.className = "form-control";
-                newInput.ariaLabel = name + "label";
-                newInput.id = name + "input";
-                newInput.type = "number";
-                newInput.min = "-360";
-
-                newInput.max = "360";
-                newInput.step = "1";
-                newInput.style.zIndex = "1";
-                colDiv.appendChild(newInput);
-                newInput.value = val;
-
-                newInput.disabled = disabled;
-            }
-
-
-
-            return newInput;
-        }
-
-
-
-
-
-        let objsToRemoveAry = [];
-
-
-        function tutorialGeomTriangle(e, x=10, y=7, pt=12.2, angle=34.9){
-            globalLineMaterial = new THREE.LineBasicMaterial({color: 0x00ff00, opacity: 0});
-
-            /*region INIT */
-
-            let xi = addInputTag("x", 10);
-            let yi = addInputTag("y", 7);
-            let hi = addInputTag("h=r", 12.2);
-            let ai = addInputTag("angle", 34.9);
-            let ri = addInputTag("rad", deg2Rad(34.9));
-
-            if(e != null && e != undefined && e.target != undefined) {
-                if(e.target.id == "angleinput"){
-                    console.log("angleInput");
-                    pt = hi.value;
-                    x = (Math.cos(deg2Rad(ai.value))*pt).toPrecision(3);
-                    y = (Math.sin(deg2Rad(ai.value))*pt).toPrecision(3);
-                    xi.value = x;
-                    yi.value = y;
-                    pt = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2)).toPrecision(3);
-
-                }else{
-                    x = xi.value;
-                    y = yi.value;
-                    pt = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2)).toPrecision(3);
-                    angle = rad2Deg(Math.acos( x / pt)).toPrecision(3);
-                    ai.value = angle;
-                }
-            }
-            /*endregion INIT */
-
-
-            /*region REMOVE */
-            for (let i = 0; i < objsToRemoveAry.length; i++) {
-                try{
-                removeObject3D(objsToRemoveAry[i]);
-                }catch(e){
-                }
-            }
-            objsToRemoveAry = [];
-            xi.removeEventListener("change", tutorialGeomTriangle);
-            yi.removeEventListener("change", tutorialGeomTriangle);
-            ai.removeEventListener("change", tutorialGeomTriangle);
-            /*endregion REMOVE */
-
-
-            /*region UPDATE */
-            // let z = 5;
-            pt = Math.abs(pt);
-            let obj = drawTriangle2D(x, y, pt); objsToRemoveAry.push(obj);
-            hi.value = pt;
-            hi.disabled = true;
-            let labelDivX = addLabel(obj, `(${x}, 0)`, x, 0); objsToRemoveAry.push(labelDivX);
-            let labelDivXY = addLabel(obj, `(${x}, ${y})`, x, y); objsToRemoveAry.push(labelDivXY);
-            let labelDiv0 = addLabel(obj, "(0,0)", 0, 0, 0); objsToRemoveAry.push(labelDiv0);
-            let labelDivH = addLabel(obj, "h=" + pt, x / 2, Math.round(y / 2), 0); objsToRemoveAry.push(labelDivH);
-            let labelDivS = addLabel(obj, "sin=" + (y / pt).toPrecision(3), 0, -(pt+3), 0); objsToRemoveAry.push(labelDivS);
-            let labelDivC = addLabel(obj, "cos=" + (x / pt).toPrecision(3), 0, -(pt+5), 0); objsToRemoveAry.push(labelDivC);
-            let labelDivT = addLabel(obj, "tan=" + (x / y).toPrecision(3), 0, -(pt+7), 0); objsToRemoveAry.push(labelDivT);
-            let labelDivP = addLabel(obj, "(0,0)", 0, 0, 0); objsToRemoveAry.push(labelDivP);
-            let cirObj = drawCircleAxis(pt, 48, 360, "Z", 0, null, "obj"); objsToRemoveAry.push(cirObj);
-            ri.value = deg2Rad(ai.value).toPrecision(3)+"";
-
-
-            xi.addEventListener("change", tutorialGeomTriangle);
-            yi.addEventListener("change", tutorialGeomTriangle);
-            ai.addEventListener("change", tutorialGeomTriangle);
-            /*endregion UPDATE */
-
-
-
-        }
-
-        function startTutorialTriangle() {
-            tutorialGeomTriangle(null, 10, 7, 12.2, 34.9);
-        }
-
-        function startTutorialScalarVector(){
-            let xi = addInputTag("X Axis", 10, false, 30);
-            let yi = addInputTag("Y Axis", 7);
-            let zi = addInputTag("Z Axis", 0);
-            let hi = addInputTag("h hyp", 12.2);
-            let ai = addInputTag("d deg", 34.9);
-            let ri = addInputTag("radian", deg2Rad(34.9));
-            let si = addInputTag("scalar", deg2Rad(34.9));
-            let vi = addInputTag("vector", deg2Rad(34.9));
-
-        }
-
-        function removeObject3D(object3D) {
-            if (!(object3D instanceof THREE.Object3D)) return false;
-
-            // for better memory management and performance
-            if (object3D.geometry) object3D.geometry.dispose();
-
-            if (object3D.material) {
-                if (object3D.material instanceof Array) {
-                    // for better memory management and performance
-                    object3D.material.forEach(material => material.dispose());
-                } else {
-                    // for better memory management and performance
-                    object3D.material.dispose();
-                }
-            }
-            object3D.removeFromParent(); // the parent might be the scene or another Object3D, but it is sure to be removed this way
-            return true;
-        }
-
-        let inputGroup = document.getElementById("input-group");
-
-        function SetUI() {
-            inputGroup = document.getElementById("input-group");
-            inputGroup.className = "row ";
-            inputGroup.style.maxWidth = "200px";
-            inputGroup.style.minWidth = "200px";
-            inputGroup.style.left = "10px";
-            inputGroup.style.top = "50px";
-            // inputGroup.style.left = ((canvasX - inputGroup.clientWidth) / 2) + "px";
-            // inputGroup.style.top = (canvasY) + "px";
-
-
-        }
-
-        Set3DEnv();
-        setOrbit();
-        SetUI();
-        eventListen();
-
-
-        // startTutorialTriangle();
-        startTutorialScalarVector();
-
-        // let sphere =  drawSphereDefault();
-        // addLabel(sphere, "Sphere Label");
-        // addLabel3D(sphere);
-        // expDrawAxisCircle();
-
-
-    </script>
-
     <link rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"/>
     <link rel="stylesheet" href="../vendor/bootstrap/css/bootstrap.css">
     <link rel="stylesheet" href="../vendor/highlight/styles/dark.min.css">
+
     <script src="../vendor/bootstrap/js/bootstrap.js"></script>
     <script src="../vendor/highlight/highlight.min.js"></script>
     <script src="../vendor/highlight/languages/javascript.min.js"></script>
     <style>
         body {
             margin: 0;
+            font-family: "Fira Code";
         }
 
+        .input-group{
+        }
         .element {
             width: 30px;
             height: 30px;
             border-radius: 5px;
             box-shadow: 0px 0px 12px rgba(0, 255, 255, 0.5);
             border: 1px solid rgba(127, 255, 255, 0.25);
-            font-family: "JetBrains Mono";
             text-align: center;
             cursor: default;
         }
@@ -999,7 +54,6 @@
 
         .label {
             color: #FFF;
-            font-family: "JetBrains Mono";
             padding: 5px 10px 5px 10px;
             border-radius: 8px;
             background: rgba(0, 0, 0, .5);
@@ -1069,6 +123,1364 @@
         }
     }
     </script>
+    <script type="importmap">
+        {
+          "imports": {
+            "three": "./three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three/examples/jsm/"
+          }
+        }
+    </script>
+    <script type="module">
+
+
+
+
+
+        /*region GLOBAL_VALRS */
+
+        import * as THREE from 'three';
+        import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+        import {GUI} from 'three/addons/libs/lil-gui.module.min.js';
+        import {CSS2DRenderer, CSS2DObject} from 'three/addons/renderers/CSS2DRenderer.js';
+        import {CSS3DRenderer, CSS3DObject} from 'three/addons/renderers/CSS3DRenderer.js';
+
+
+
+
+        let scene;
+        let camera;
+        let renderer;
+        let labelRenderer;
+        let css3DRenderer;
+        let selectedObject = [];
+        let intervals;
+        let globalOffset = new THREE.Vector3(0, 0, 0);
+        let globalLineMaterial = new THREE.LineBasicMaterial({color: 0x33ff33});
+        let globalMaterial;
+        let gui;
+        const layers = {
+
+            'Toggle Name': function () {
+
+                camera.layers.toggle(0);
+
+            },
+            'Toggle Mass': function () {
+
+                camera.layers.toggle(1);
+
+            },
+            'Enable All': function () {
+
+                camera.layers.enableAll();
+
+            },
+
+            'Disable All': function () {
+
+                camera.layers.disableAll();
+
+            }
+
+        };
+        let canvasX;
+        let canvasY;
+        let canvas;
+        let frameRate = 1000 / 36;
+        let controls;
+        let gi = 0;
+        /*endregion GLOBAL_VALRS */
+
+
+
+        /*region SET 3D ENV */
+        function Set3DEnv() {
+
+
+            globalMaterial = new THREE.MeshPhongMaterial({
+                specular: 0x333333,
+                shininess: 5,
+                color: 0xffffff,
+                // map: textureLoader.load( 'textures/planets/earth_atmos_2048.jpg' ),
+                // specularMap: textureLoader.load( 'textures/planets/earth_specular_2048.jpg' ),
+                // normalMap: textureLoader.load( 'textures/planets/earth_normal_2048.jpg' ),
+                // normalScale: new THREE.Vector2( 0.85, 0.85 )
+            });
+
+
+            const gridHelperXYColor1 = new THREE.Color(0x888888);
+            const gridHelperXYColor2 = new THREE.Color(0x888888);
+            const gridHelperYZColor1 = new THREE.Color(0x888888);
+            const gridHelperYZColor2 = new THREE.Color(0x888888);
+
+            scene = new THREE.Scene();
+
+            canvas = document.getElementById("main3DCanvas");
+            canvasX = canvas.clientWidth;
+            canvasY = canvas.clientHeight;
+
+// init
+
+            camera = new THREE.PerspectiveCamera(60, canvasX / canvasY, 0.01, 1000);
+            camera.position.z = 50;
+            camera.position.y = 1;
+            camera.layers.enableAll();
+
+
+            const dirLight = new THREE.DirectionalLight(0xffffff, 1);
+            dirLight.position.set(3, 5, 3);
+            // dirLight.rotation.x = 30;
+            // dirLight.rotation.y = 30;
+            // dirLight.rotation.z = 30;
+            dirLight.layers.enableAll();
+            scene.add(dirLight);
+
+            const dirLightA = new THREE.AmbientLight(0xffffff, 0.2);
+            dirLightA.position.set(0, 1, 5);
+            dirLightA.layers.enableAll();
+            scene.add(dirLightA);
+
+            const size = 100;
+            const divisions = 100;
+
+            // const size = 100;
+            // const divisions = 100;
+
+            const gridHelperXY = new THREE.GridHelper(size, divisions, gridHelperXYColor1, gridHelperXYColor2);
+            const gridHelperYZ = new THREE.GridHelper(size, divisions, gridHelperYZColor1, gridHelperYZColor2);
+            scene.add(gridHelperXY);
+            scene.add(gridHelperYZ);
+
+            gridHelperXY.rotation.x = deg2Rad(90);
+            gridHelperYZ.rotation.y = deg2Rad(90);
+
+
+            renderer = new THREE.WebGLRenderer({antialias: true});
+
+
+            renderer.setSize(canvasX, canvasY);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            canvas.appendChild(renderer.domElement);
+
+
+            labelRenderer = new CSS2DRenderer();
+            labelRenderer.setSize(canvasX, canvasY);
+            labelRenderer.domElement.style.position = 'absolute';
+            labelRenderer.domElement.style.top = '0px';
+
+            canvas.appendChild(labelRenderer.domElement);
+
+
+            const axesHelper = new THREE.AxesHelper(5);
+            axesHelper.layers.enableAll();
+            scene.add(axesHelper);
+
+
+            css3DRenderer = new CSS3DRenderer();
+            css3DRenderer.setSize(canvasX, canvasY);
+            css3DRenderer.domElement.style.position = 'absolute';
+            css3DRenderer.domElement.style.top = '0px';
+
+            canvas.appendChild(css3DRenderer.domElement);
+
+            renderer.render(scene, camera);
+            labelRenderer.render(scene, camera);
+            css3DRenderer.render(scene, camera);
+
+            initGui();
+
+// animation
+
+        }
+        function setCameraPos(x, y, z, callback) {
+            camera.position.set(camera.position.x + x, camera.position.y + y, camera.position.z + z);
+            renderer.render(scene, camera);
+            if (callback != null) callback();
+        }
+
+        function getCameraPos() {
+            return [camera.position.x, camera.position.y, camera.position.z]
+        }
+
+        function getCameraRot() {
+            return [camera.rotation.x, camera.rotation.y, camera.rotation.z]
+        }
+
+        function setCameraRot(x, y, z, callback) {
+            camera.rotation.x += deg2Rad(x);
+            camera.rotation.y += deg2Rad(y);
+            camera.rotation.z += deg2Rad(z);
+            if (callback != null) callback();
+            renderer.render(scene, camera);
+        }
+
+        function setCameraLookAt(x, y, z) {
+            camera.lookAt(0, 0, 0);
+        }
+
+
+        function setInputCameraPos() {
+
+            let cameraPosId = document.getElementById("cameraPosId");
+            let inputs = cameraPosId.getElementsByTagName("input");
+            let curCamPos = getCameraPos();
+            for (let i = 0; i < inputs.length; i++) {
+                inputs[i].value = curCamPos[i];
+            }
+        }
+
+        function setInputCameraRot() {
+            let cameraPosId = document.getElementById("cameraRotId");
+            let inputs = cameraPosId.getElementsByTagName("input");
+            let curCamPos = getCameraRot();
+            for (let i = 0; i < inputs.length; i++) {
+                inputs[i].value = rad2Deg(curCamPos[i]);
+            }
+        }
+
+        function setCameraPosBind(x, y, z, callback) {
+            console.log("setCameraPosBind");
+            setCameraPos(0.5, 0, 0);
+            // if(x == null) x=0.01;
+            // if(y == null) y=0.01;
+            // if(z == null) z=0.01;
+            // setCameraPos(x, y, z, callback);
+        }
+
+
+
+        function initGui() {
+
+            gui = new GUI();
+
+            gui.title('Camera Layers');
+
+            gui.add(layers, 'Toggle Name');
+            gui.add(layers, 'Toggle Mass');
+            gui.add(layers, 'Enable All');
+            gui.add(layers, 'Disable All');
+
+            gui.open();
+
+        }
+        function removeObject3D(object3D) {
+            if (!(object3D instanceof THREE.Object3D)) return false;
+
+            // for better memory management and performance
+            if (object3D.geometry) object3D.geometry.dispose();
+
+            if (object3D.material) {
+                if (object3D.material instanceof Array) {
+                    // for better memory management and performance
+                    object3D.material.forEach(material => material.dispose());
+                } else {
+                    // for better memory management and performance
+                    object3D.material.dispose();
+                }
+            }
+            object3D.removeFromParent(); // the parent might be the scene or another Object3D, but it is sure to be removed this way
+            return true;
+        }
+        let inputGroup = document.getElementById("input-group");
+        function SetUI() {
+            inputGroup = document.getElementById("input-group");
+            inputGroup.className = "";
+            // inputGroup.style.minWidth = "200px";
+            inputGroup.style.width = "80%";
+            inputGroup.style.display = "flex";
+            // inputGroup.style.left = "10px";
+            // inputGroup.style.top = "50px";
+            inputGroup.style.left = ((canvasX - inputGroup.clientWidth) / 2) + "px";
+            inputGroup.style.top = (canvasY) + "px";
+
+        }
+
+
+        function setOrbit() {
+
+            controls = new OrbitControls(camera, css3DRenderer.domElement);
+
+//controls.update() must be called after any manual changes to the camera's transform
+            controls.update();
+            animateOrbit();
+            // renderer.setAnimationLoop( animateOrbit );
+        }
+        function animateOrbit() {
+
+            setTimeout(() => {
+                requestAnimationFrame(animateOrbit);
+                renderer.render(scene, camera);
+                labelRenderer.render(scene, camera);
+                css3DRenderer.render(scene, camera);
+            }, frameRate);
+
+            // required if controls.enableDamping or controls.autoRotate are set to true
+            // controls.update();
+        }
+
+
+        function rotateObjectByInterval(intv) {
+            if (intv == null) intv = 36;
+            intv = intv / 1000;
+            if (selectedObject.length == 0) return false;
+            if (intervals != null) clearInterval(intervals);
+            intervals = setInterval(() => {
+                // selectedObject.rotation.x += 0.01;
+                for (let i = 0; i < selectedObject.length; i++) {
+                    selectedObject[i].rotation.x += 0.01;
+                    selectedObject[i].rotation.y += 0.01;
+                }
+                renderer.render(scene, camera);
+            }, intv);
+        }
+
+        function stopAnim() {
+            if (intervals != null) clearInterval(intervals);
+
+        }
+
+
+        function setGlobalOffset(x, y, z) {
+            globalOffset = new THREE.Vector3(x, y, z);
+        }
+
+
+        function setGlobalLineMaterial(color) {
+            let hex = parseInt(color.replace(/^#/, ''), 16);
+            globalLineMaterial = new THREE.LineBasicMaterial({
+                color: 0xffffff,
+                linewidth: 3,
+                linecap: 'round', //ignored by WebGLRenderer
+                linejoin: 'round' //ignored by WebGLRenderer
+            });
+        }
+
+        /*endregion SET 3D ENV */
+
+
+
+        /*region DRAWINGS */
+
+
+        function deg2Rad(deg) {
+            return deg / 360 * (Math.PI * 2);
+        }
+
+
+        function rad2Deg(rad) {
+            return rad / (Math.PI * 2) * 360;
+        }
+
+        function drawSphere(r, seg) {
+            const geometry = new THREE.SphereGeometry(r, seg, seg);
+            const sphere = new THREE.Mesh(geometry, globalMaterial);
+
+            scene.add(sphere);
+            return sphere;
+        }
+        function drawCube() {
+            const geometry = new THREE.BoxGeometry(1, 1, 1);
+            const cube = new THREE.Mesh(geometry, globalMaterial);
+
+            scene.add(cube);
+            return cube;
+        }
+
+        function drawLineFromTo(from, to) {
+            let points = [];
+
+            if (from == undefined) return false;
+            if (to == undefined) return false;
+
+            points.push(from);
+            points.push(to);
+
+            const geometry = new THREE.BufferGeometry().setFromPoints(points);
+            const line = new THREE.Line(geometry, globalLineMaterial);
+
+            scene.add(line);
+            renderer.render(scene, camera);
+
+        }
+        function drawLineFromToLink(objA, objB) {
+            let points = [];
+
+
+            points.push(objA);
+            points.push(objB);
+
+            const geometry = new THREE.BufferGeometry().setFromPoints(points);
+            const line = new THREE.Line(geometry, globalLineMaterial);
+
+            scene.add(line);
+            renderer.render(scene, camera);
+
+            return line;
+        }
+        function drawSineWave(r, seg, angle, axisName, axisVal) {
+            if (r == null) r = 3;
+            if (seg == null) seg = 24;
+            if (angle == null) angle = 360;
+            if (axisName == null) axisName = 'Z';
+            if (axisVal == null) axisVal = 0;
+
+
+            let a = 0;
+            let b = 0;
+            let c = 0;
+
+
+            let ua = angle / seg;
+
+
+            const points = [];
+
+            for (let i = 0; i < seg + 1; i++) {
+                const nDeg = i * ua;
+                const nRad = deg2Rad(nDeg);
+                const cos = Math.cos(nRad);
+                const sin = Math.sin(nRad);
+                const cosAxisPos = cos * r;
+                const sinAxisPos = sin * r;
+
+                points.push(axisChange(nRad, sinAxisPos, axisVal, axisName));
+            }
+
+            const geometry = new THREE.BufferGeometry().setFromPoints(points);
+
+            const line = new THREE.Line(geometry, globalLineMaterial);
+
+            scene.add(line);
+            renderer.render(scene, camera);
+
+            return points;
+        }
+
+        function drawCircle(r, seg, angle, z) {
+            if (r == null) r = 3;
+            if (seg == null) seg = 24;
+            if (angle == null) angle = 360;
+            if (z == null) z = 0;
+
+            let ua = angle / seg;
+
+            globalLineMaterial = new THREE.LineBasicMaterial({color: 0xffff00});
+
+            const points = [];
+
+            for (let i = 0; i < seg + 1; i++) {
+                const nDeg = i * ua;
+                const xPos = Math.cos(deg2Rad(nDeg)) * r;
+                const yPos = Math.sin(deg2Rad(nDeg)) * r;
+                points.push(new THREE.Vector3(xPos, yPos, z));
+            }
+
+            const geometry = new THREE.BufferGeometry().setFromPoints(points);
+
+            const line = new THREE.Line(geometry, material);
+
+            scene.add(line);
+            renderer.render(scene, camera);
+        }
+        function drawCircleAxis(r, seg, angle, axisName, axisVal, split) {
+            if (r == null) r = 3;
+            if (seg == null) seg = 24;
+            if (angle == null) angle = 360;
+            if (axisName == null) axisName = 'Z';
+            if (axisVal == null) axisVal = 0;
+
+
+            let a = 0;
+            let b = 0;
+            let c = 0;
+
+
+            let ua = angle / seg;
+
+
+            const points = [];
+
+            for (let i = 0; i < seg + 1; i++) {
+                const nDeg = i * ua;
+                const nRad = deg2Rad(nDeg);
+                const cos = Math.cos(nRad);
+                const sin = Math.sin(nRad);
+                const cosAxisPos = cos * r;
+                const sinAxisPos = sin * r;
+
+                points.push(axisChange(globalOffset.x + cosAxisPos, globalOffset.y + sinAxisPos, globalOffset.z + axisVal, axisName));
+            }
+            const geometry = new THREE.BufferGeometry().setFromPoints(points);
+
+            const line = new THREE.Line(geometry, globalLineMaterial);
+
+            scene.add(line);
+            renderer.render(scene, camera);
+
+            let splitPoints = [];
+            let lineSplit;
+            if (split != null) {
+                for (let i = 0; i < split; i++) {
+                    const nDeg = i * (360 / split);
+                    const nRad = deg2Rad(nDeg);
+                    const cos = Math.cos(nRad);
+                    const sin = Math.sin(nRad);
+                    const cosAxisPos = cos * r;
+                    const sinAxisPos = sin * r;
+                    splitPoints.push(axisChange(globalOffset.x, globalOffset.y, axisVal + globalOffset.z, axisName));
+                    splitPoints.push(axisChange(cosAxisPos + globalOffset.x, sinAxisPos + globalOffset.y, axisVal + globalOffset.z, axisName));
+                    const geometrySplit = new THREE.BufferGeometry().setFromPoints(splitPoints);
+                    lineSplit = new THREE.Line(geometrySplit, globalLineMaterial);
+                    line.add(lineSplit);
+                    scene.add(lineSplit);
+                }
+                renderer.render(scene, camera);
+            }
+
+            points.push(points[0]);
+
+
+            return {"line":line, "points":points};
+        }
+        function axisChange(cosAxisPos, sinAxisPos, axisVal, axisName) {
+
+            /*
+            * Z => (cos, sin, axisVal)
+            * Y => (cos, axisVal, sin)
+            * X => (axisVal, sin, cos)
+            * */
+
+            if (axisName == 'Z') {
+                return new THREE.Vector3(cosAxisPos, sinAxisPos, axisVal);
+
+            } else if (axisName == 'Y') {
+                return new THREE.Vector3(cosAxisPos, axisVal, sinAxisPos);
+
+            } else if (axisName == 'X') {
+                return new THREE.Vector3(axisVal, sinAxisPos, cosAxisPos);
+            }
+        }
+        function drawTriangleWithShape(x = 4, y = 3) {
+
+            const points = [];
+
+            points.push(new THREE.Vector3(0, 0, 0));
+            points.push(new THREE.Vector3(Number(x), 0, 0));
+            points.push(new THREE.Vector3(Number(x), Number(y), 0));
+            points.push(new THREE.Vector3(0, 0, 0));
+
+            const geometry = new THREE.BufferGeometry().setFromPoints(points);
+
+            const heartShape = new THREE.Shape().setFromPoints(points);
+            //
+            // heartShape.moveTo( 0, 0);
+            // heartShape.lineTo( x, 0);
+            // heartShape.lineTo( x, y);
+            // heartShape.lineTo( 0, 0);
+
+            const geometryMesh = new THREE.ShapeGeometry( heartShape );
+            globalMaterial = new THREE.MeshBasicMaterial( { color: 0xffff33, transparent: true, opacity: 0.2 } );
+
+            const line = new THREE.Line(geometry, globalLineMaterial);
+            const mesh = new THREE.Mesh(geometryMesh, globalMaterial);
+            line.add(mesh);
+
+            scene.add(line);
+
+            renderer.render(scene, camera);
+
+            return line;
+        }
+
+
+        function drawVerticalLine(pointInfo) {
+
+
+            let lines = [];
+            for (let i = 0; i < pointInfo[0].length; i++) {
+                const points = [];
+                for (let j = 0; j < pointInfo.length; j++) {
+                    points.push(pointInfo[j][i]);
+                }
+                const geometry = new THREE.BufferGeometry().setFromPoints(points);
+
+                const line = new THREE.Line(geometry, globalLineMaterial);
+                scene.add(line);
+                lines.push(line);
+
+            }
+
+            renderer.render(scene, camera);
+
+
+            return lines;
+
+        }
+
+        function drawSphereAltitude(sphereRadius, circleSegment, sphereAngle, sphereSegment) {
+            if (sphereRadius == null) sphereRadius = 3;
+            if (circleSegment == null) circleSegment = 36;
+            if (sphereAngle == null) sphereAngle = 360;
+            if (sphereSegment == null) sphereSegment = 30;
+
+            let segmentPerAngle = sphereAngle / sphereSegment;
+            for (let i = 0; i < sphereSegment; i++) {
+                let nextUnitAngle = segmentPerAngle * i;
+                let nextCircleRadius = Math.cos(deg2Rad(nextUnitAngle)) * sphereRadius;
+                let zOffset = Math.sin(deg2Rad(nextUnitAngle)) * sphereRadius;
+                drawCircle(nextCircleRadius, circleSegment, sphereAngle, zOffset);
+            }
+
+            for (let i = 0; i < sphereSegment; i++) {
+                let nextUnitAngle = segmentPerAngle * i;
+                let nextCircleRadius = Math.cos(deg2Rad(nextUnitAngle)) * sphereRadius;
+                let zOffset = Math.sin(deg2Rad(nextUnitAngle)) * sphereRadius;
+                drawCircle(nextCircleRadius, circleSegment, sphereAngle, zOffset);
+            }
+            renderer.render(scene, camera);
+        }
+
+        function drawSphereAxis(r, s, a, axis) {
+            if (r == null) r = 5;
+            if (s == null) s = 36;
+            if (a == null) a = 360;
+            if (axis == null) axis = 'Z';
+
+            let pointsGrp = [];
+            let objGrp = [];
+
+            let segmentPerAngle = a / s;
+            for (let i = 0; i < s; i++) {
+                let nextUnitAngle = segmentPerAngle * i;
+                let nextCircleRadius = Math.cos(deg2Rad(nextUnitAngle)) * r;
+                let zOffset = Math.sin(deg2Rad(nextUnitAngle)) * r;
+                let circle = drawCircleAxis(nextCircleRadius, s, a, axis, zOffset);
+                pointsGrp.push(circle.points);
+                objGrp.push(circle.line);
+            }
+
+
+            renderer.render(scene, camera);
+
+            return {"pointsGrp":pointsGrp, "objGrp":objGrp};
+        }
+
+
+        /*endregion DRAWINGS */
+
+
+
+
+
+        /*region TT_SINE_WAVE */
+        async function expDrawSineWave() {
+            let animTime = 40;
+            setGlobalOffset(-1, 0, 0);
+            let circleVertex = drawCircleAxis(1, 96, 720, 'Z', 0, 48).points;
+            setGlobalOffset(0, 0, 0);
+            let sinVertex = drawSineWave(1, 96, 720, 'Z', 0);
+            gi = 0;
+            setGlobalLineMaterial("#6be670");
+            animSineWaveToCircleLine(circleVertex, sinVertex, sinVertex.length, animTime);
+
+            setTimeout(() => {
+                setGlobalLineMaterial("#00d0ff");
+                setGlobalOffset(-5, 0, 0);
+                let circleVertex = drawCircleAxis(5, 96, 720, 'Z', 0, 48);
+                setGlobalOffset(0, 0, 0);
+                sinVertex = drawSineWave(5, 96, 720, 'Z', 0);
+                gi = 0;
+                animSineWaveToCircleLine(circleVertex, sinVertex, sinVertex.length, animTime);
+            }, 5000);
+
+        }
+
+        async function animSineWaveToCircleLine(a, b, maxLen, time) {
+            setTimeout(() => {
+                gi += 1;
+                drawLineFromTo(a[gi], b[gi]);
+                if (gi < maxLen) {
+                    animSineWaveToCircleLine(a, b, maxLen, time);
+                }
+            }, time);
+        }
+
+        function expDrawAxisCircle() {
+            drawCircleAxis(5, 36, 360, 'X');
+            drawCircleAxis(5, 36, 360, 'Y');
+            drawCircleAxis(5, 36, 360, 'Z');
+        }
+        /*endregion TT_SINE_WAVE */
+
+
+
+
+
+        /*region HTML */
+        function addRowHTML(){
+            let rowHTML =
+                `
+            <div class="row g-3">
+  <div class="col">
+    <input type="text" class="form-control" placeholder="First name" aria-label="First name">
+  </div>
+  <div class="col">
+    <input type="text" class="form-control" placeholder="Last name" aria-label="Last name">
+  </div>
+</div>
+            `;
+
+            inputGroup.innerHTML += rowHTML;
+
+
+        }
+
+        function addLabel3D(obj) {
+
+            const element = document.createElement('div');
+            element.className = 'element';
+            element.style.backgroundColor = 'rgba(0,127,127,' + (Math.random() * 0.5 + 0.25) + ')';
+            const details = document.createElement('div');
+            details.className = 'details';
+            details.textContent = "3D LABEL";
+            element.appendChild(details);
+
+
+            const objectCSS = new CSS3DObject(element);
+
+
+            if (obj == null) {
+                scene.add(objectCSS);
+                objectCSS.position.x = -135;
+                objectCSS.position.y = -135;
+            } else {
+                obj.add(objectCSS);
+            }
+
+        }
+
+        function addLabel(obj, label, x = 0, y = 0, z = 0) {
+
+            const labelDiv = document.createElement('div');
+            labelDiv.className = 'label';
+            labelDiv.textContent = label;
+            // labelDiv.style.backgroundColor = 'transparent';
+
+
+            const labelObj = new CSS2DObject(labelDiv);
+            labelObj.position.set(x, y - 1, z);
+            labelObj.center.set(0, 0);
+            obj.add(labelObj);
+            labelObj.layers.set(0);
+
+            return labelObj;
+        }
+
+        let inputs = [];
+        let uiRate = 0.8;
+        function add2DCSSInput(obj, parentId, childId, val, callback, ofs = [0, 0, 0], size=400) {
+
+            let newSpan;
+            let newInput;
+            let colDiv;
+
+            newSpan = document.getElementById( `${parentId}${childId}-span`);
+            newInput = document.getElementById( `${parentId}${childId}-input`);
+            colDiv = document.getElementById( `${parentId}-div`);
+            if(colDiv == null){
+                colDiv = document.createElement("div");
+                colDiv.className = "input-group input-group-sm mb-3";
+                colDiv.style.maxWidth = size+"px";
+                colDiv.style.opacity = "0.85";
+                colDiv.id =`${parentId}-div`;
+                inputGroup.appendChild(colDiv);
+            }
+
+            if(newSpan == null){
+                newSpan = document.createElement("span");
+                newSpan.className = "input-group-text";
+                newSpan.id = `${parentId}${childId}-span`;
+                newSpan.textContent = `${parentId}${childId}`;
+                colDiv.appendChild(newSpan);
+            }
+
+            if(newInput == null){
+                newInput = document.createElement("input");
+                newInput.className = "form-control";
+                newInput.ariaLabel = `${parentId}${childId}-input`;
+                newInput.id = `${parentId}${childId}-input`;
+                newInput.type = "number";
+                newInput.style.zIndex = "1";
+                newInput.value = val;
+                newInput.addEventListener("change", ev => {
+                    changeInput(ev, obj, callback);
+                })
+                colDiv.appendChild(newInput);
+            }else{
+                newInput.value = val;
+            }
+
+
+
+            const labelObj = new CSS2DObject(colDiv);
+            labelObj.position.set(ofs[0], ofs[1], ofs[2]);
+            labelObj.center.set(0, -2);
+            obj.add(labelObj);
+            labelObj.layers.set(0);
+
+            return labelObj;
+        }
+
+        function addOutputHTMLTag(){
+            let outputDiv = document.getElementById("outputDiv")
+            if(outputDiv == null){
+                outputDiv = document.createElement("div");
+            }
+            outputDiv.id = "outputDiv";
+            inputGroup.appendChild(outputDiv);
+            return outputDiv;
+        }
+
+        function addInputTag(name = 'inputName', val = 10, pName="row", disabled, sz = 100) {
+            /*
+<div class="input-group mb-3">
+  <span class="input-group-text" id="basic-addon1">@</span>
+  <input type="text" class="form-control" placeholder="Username"
+  aria-label="Username" aria-describedby="basic-addon1">
+</div>
+            * */
+            let newSpan;
+            let newInput;
+            let colDiv;
+
+            newSpan = document.getElementById( pName+name + "label");
+            newInput = document.getElementById( pName+name + "input");
+            colDiv = document.getElementById( pName + "colDiv");
+            if(colDiv == null){
+                colDiv = document.createElement("div");
+                colDiv.className = "input-group mb-3";
+                colDiv.id = pName + "colDiv";
+                inputGroup.appendChild(colDiv);
+            }
+
+            if(newSpan == null){
+                newSpan = document.createElement("span");
+                newSpan.className = "input-group-text";
+                newSpan.id = pName+name + "label";
+                newSpan.textContent = pName+name;
+                colDiv.appendChild(newSpan);
+            }
+
+            if(newInput == null){
+                newInput = document.createElement("input");
+                newInput.style.maxWidth = "200px";
+                newInput.style.minWidth = "50px";
+
+                newInput.className = "form-control";
+                newInput.ariaLabel = pName+name + "label";
+                newInput.id = pName+name + "input";
+                newInput.type = "number";
+                newInput.min = "-360";
+
+                newInput.max = "360";
+                newInput.step = "1";
+                newInput.style.zIndex = "1";
+                newInput.value = val;
+                newInput.disabled = disabled;
+                newInput.addEventListener("change", changeInput)
+
+                colDiv.appendChild(newInput);
+            }else{
+                newInput.value = val;
+            }
+            return newInput;
+        }
+
+        function eventListen() {
+            const posBtnXMinus = document.querySelector("#posBtnXMinus");
+            const posBtnXPlus = document.querySelector("#posBtnXPlus");
+            const btnViewTriangle = document.querySelector("#btnViewTriangle");
+            const btnViewCircle = document.querySelector("#btnViewCircle");
+            btnViewCircle.addEventListener("click", evt => drawCircleAxis(5));
+            posBtnXMinus.addEventListener("click", function () {
+                setCameraPos(0.5, 0, 0, setInputCameraPos);
+            });
+            posBtnXPlus.addEventListener("click", function () {
+                setCameraPos(-0.5, 0, 0, setInputCameraPos);
+            });
+        }
+
+        function outputUpdate(txt){
+            let outputDiv = addOutputHTMLTag();
+            outputDiv.innerHTML += txt;
+        }
+        /*endregion HTML */
+
+
+        /*region TT_TRIANGLES */
+        function expDrawTriangleExam() {
+            drawTriangle(4, 3);
+            drawTriangle(-4, 3);
+            drawTriangle(4, -3);
+            drawTriangle(-4, -3);
+        }
+
+
+        let objsToRemoveAry = [];
+        function tutorialGeomTriangle(e, x=10, y=7, pt=12.2, angle=34.9){
+            globalLineMaterial = new THREE.LineBasicMaterial({color: 0x00ff00, opacity: 0});
+
+            /*region INIT */
+
+            let xi = addInputTag("x", 10);
+            let yi = addInputTag("y", 7);
+            let hi = addInputTag("h=r", 12.2);
+            let ai = addInputTag("angle", 34.9);
+            let ri = addInputTag("rad", deg2Rad(34.9));
+
+            if(e != null && e != undefined && e.target != undefined) {
+                if(e.target.id == "angleinput"){
+                    console.log("angleInput");
+                    pt = hi.value;
+                    x = (Math.cos(deg2Rad(ai.value))*pt).toPrecision(3);
+                    y = (Math.sin(deg2Rad(ai.value))*pt).toPrecision(3);
+                    xi.value = x;
+                    yi.value = y;
+                    pt = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2)).toPrecision(3);
+
+                }else{
+                    x = xi.value;
+                    y = yi.value;
+                    pt = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2)).toPrecision(3);
+                    angle = rad2Deg(Math.acos( x / pt)).toPrecision(3);
+                    ai.value = angle;
+                }
+            }
+            /*endregion INIT */
+
+
+            /*region REMOVE */
+            for (let i = 0; i < objsToRemoveAry.length; i++) {
+                try{
+                removeObject3D(objsToRemoveAry[i]);
+                }catch(e){
+                }
+            }
+            objsToRemoveAry = [];
+            xi.removeEventListener("change", tutorialGeomTriangle);
+            yi.removeEventListener("change", tutorialGeomTriangle);
+            ai.removeEventListener("change", tutorialGeomTriangle);
+            /*endregion REMOVE */
+
+
+            /*region UPDATE */
+            // let z = 5;
+            pt = Math.abs(pt);
+            let obj = drawTriangleWithShape(x, y, pt); objsToRemoveAry.push(obj);
+            hi.value = pt;
+            hi.disabled = true;
+            let labelDivX = addLabel(obj, `(${x}, 0)`, x, 0); objsToRemoveAry.push(labelDivX);
+            let labelDivXY = addLabel(obj, `(${x}, ${y})`, x, y); objsToRemoveAry.push(labelDivXY);
+            let labelDiv0 = addLabel(obj, "(0,0)", 0, 0, 0); objsToRemoveAry.push(labelDiv0);
+            let labelDivH = addLabel(obj, "h=" + pt, x / 2, Math.round(y / 2), 0); objsToRemoveAry.push(labelDivH);
+            let labelDivS = addLabel(obj, "sin=" + (y / pt).toPrecision(3), 0, -(pt+3), 0); objsToRemoveAry.push(labelDivS);
+            let labelDivC = addLabel(obj, "cos=" + (x / pt).toPrecision(3), 0, -(pt+5), 0); objsToRemoveAry.push(labelDivC);
+            let labelDivT = addLabel(obj, "tan=" + (x / y).toPrecision(3), 0, -(pt+7), 0); objsToRemoveAry.push(labelDivT);
+            let labelDivP = addLabel(obj, "(0,0)", 0, 0, 0); objsToRemoveAry.push(labelDivP);
+            let cirObj = drawCircleAxis(pt, 48, 360, "Z", 0, null).line; objsToRemoveAry.push(cirObj);
+            ri.value = deg2Rad(ai.value).toPrecision(3)+"";
+
+
+            xi.addEventListener("change", tutorialGeomTriangle);
+            yi.addEventListener("change", tutorialGeomTriangle);
+            ai.addEventListener("change", tutorialGeomTriangle);
+            /*endregion UPDATE */
+
+
+
+        }
+
+        function startTutorialTriangle() {
+            tutorialGeomTriangle(null, 10, 7, 12.2, 34.9);
+        }
+        /*endregion TT_TRIANGLES */
+
+
+
+
+        /*region TT_DOT_PRODUCT */
+        function expDraw3DSphere(r=5) {
+            let grp = drawSphereAxis(r, 36, 360, 'Y');
+            let pointInfo = grp.pointsGrp;
+            let objs1 = grp.objGrp;
+            let objs2 = drawVerticalLine(pointInfo);
+
+
+            let objs3 = [];
+            objs3 = objs3.concat(objs1);
+            objs3 = objs3.concat(objs2);
+
+
+            return objs3;
+
+
+        }
+
+        function changeInput(input, obj, callback){
+            if(callback != null){
+                callback(input, obj);
+            }else{
+            }
+            // let val = e.target.value;
+            // let id = e.target.id;
+            // console.log(`${val}, ${id}`);
+
+            redrawAfterCallback();
+        }
+
+        let gRelatives = [];
+        let gBaseAbs = [];
+        let gLinks = [];
+        function redrawAfterCallback() {
+            for (let di = 0; di < gLinks.length; di++) {
+                removeObject3D(gLinks[di]);
+            }
+            globalMaterial = new THREE.MeshBasicMaterial({color: 0xFFFFFF});
+
+            let scalars = [];
+            for (let gi = 0; gi < gBaseAbs.length; gi++) {
+                let points1 = [];
+                let relPoints = [];
+                points1.push(float3Data(gBaseAbs[gi].position));
+
+                let dotpro = dotProduct(gRelatives[0].position, gRelatives[1].position);
+                add2DCSSInput(gBaseAbs[gi], "A ⋅ B = ", "( Ax × Bx ) + ( Ay × By ) + ( Az × Az ) = ", dotpro, null, [0, -3, 0], 400);
+                globalLineMaterial = new THREE.LineBasicMaterial({color: 0x00FF00});
+
+                for (let i = 0; i < gRelatives.length; i++) {
+                    let line = drawLineFromToLink(gBaseAbs[gi].position, gRelatives[i].position);
+                    gLinks.push(line);
+
+                    relPoints.push(positionToJsonFromOBJ(gRelatives[i]));
+                    points1.push(float3Data(gRelatives[i].position));
+                    let sphereAScalar = getScalarFromThreeJSVector3(gRelatives[i].position);
+                    scalars.push(sphereAScalar);
+
+                    let name = "";
+
+                }
+                points1.push(float3Data(gBaseAbs[gi].position));
+                let mesh = createGeometry(points1);
+                gLinks.push(mesh);
+
+
+                let cost = (dotpro/(scalars[0]*scalars[1]));
+                let acos = Math.acos(Number(cost));
+                let deg = rad2Deg(acos);
+                console.log(deg);
+
+                let as = scalars[0];
+                let bs = scalars[1];
+                let ap = relPoints[0];
+                let bp = relPoints[1];
+
+                add2DCSSInput(gBaseAbs[gi], "*/", "cos(θ) = ", cost.toPrecision(3), null, [0, -6, 0], 400);
+                add2DCSSInput(gBaseAbs[gi], "*/", "|A| = ", as, null, [0,-6,0], 400);
+                add2DCSSInput(gBaseAbs[gi], "*/", "|B| =  ", bs, null, [0,-6,0], 400);
+
+                add2DCSSInput(gBaseAbs[gi], "∠", "rad = acos(cos(θ)) =", acos.toPrecision(3), null, [0, -9, 0], 400);
+                add2DCSSInput(gBaseAbs[gi], "∠", "deg =", deg.toPrecision(3), null, [0, -9, 0]);
+
+
+                let av = {x:ap.x/as, y:ap.y/as, z:ap.z/as};
+                let bv = {x:bp.x/bs, y:bp.y/bs, z:bp.z/bs};
+                add2DCSSInput(gBaseAbs[gi], "vA", "x", av.x.toPrecision(2), null, [0, -15, 0],350);
+                add2DCSSInput(gBaseAbs[gi], "vA", "y", av.y.toPrecision(2), null, [0, -15, 0],350);
+                add2DCSSInput(gBaseAbs[gi], "vA", "z",av.z.toPrecision(2), null, [0, -15, 0],350);
+
+                add2DCSSInput(gBaseAbs[gi], "vB", "x", bv.x.toPrecision(2), null, [0, -13, 0],350);
+                add2DCSSInput(gBaseAbs[gi], "vB", "y", bv.y.toPrecision(2), null, [0, -13, 0],350);
+                add2DCSSInput(gBaseAbs[gi], "vB", "z",bv.z.toPrecision(2), null, [0, -13, 0],350);
+
+                globalLineMaterial = new THREE.LineBasicMaterial({color: 0x00FF00});
+                globalMaterial = new THREE.MeshPhongMaterial({
+                    specular: 0xFFFFFF,
+                    shininess: 30,
+                    color: 0xFF00FF,
+                });
+                let sphereBe = drawSphere(0.25, 36, 36);
+                globalMaterial = new THREE.MeshPhongMaterial({
+                    specular: 0xFFFFFF,
+                    shininess: 30,
+                    color: 0x00FFFF,
+                });
+                let sphereAe = drawSphere(0.25, 36, 36);
+                add2DCSSInput(sphereBe, "|A|cos(θ)", "", (cost*as).toPrecision(3), null, [-9,3, 0], 140);
+                add2DCSSInput(sphereAe, "|B|cos(θ)", "", (cost*bs).toPrecision(3), null, [-9,3, 0], 140);
+
+                sphereBe.position.x = bv.x*(cost*as);
+                sphereBe.position.y = bv.y*(cost*as);
+                sphereBe.position.z = bv.z*(cost*as);
+
+                sphereAe.position.x = av.x*(cost*bs);
+                sphereAe.position.y = av.y*(cost*bs);
+                sphereAe.position.z = av.z*(cost*bs);
+                gLinks.push(sphereBe);
+                gLinks.push(sphereAe);
+
+
+
+                globalLineMaterial = new THREE.LineBasicMaterial({color: 0x228888, transparent:true, opacity:0.3});
+                let sphLine = expDraw3DSphere(scalars[1]);
+                gLinks = gLinks.concat(sphLine);
+
+            }
+
+
+        }
+
+        function positionToJsonFromOBJ(obj){
+return            {"x":obj.position.x, "y":obj.position.y, "z":obj.position.z}
+        }
+
+        function float3Data(vector){
+            return [vector.x, vector.y, vector.z];
+        }
+
+        function dotProduct(a , b){
+            return (a.x*b.x)+(a.y*b.y)+(a.z*b.z);
+        }
+
+        function createGeometry(points2){
+
+
+            const geometry = new THREE.BufferGeometry();
+
+            const indices = [];
+
+            const vertices = [];
+            const normals = [];
+            const colors = [];
+
+            const size = 20;
+            const segments = 10;
+
+            const halfSize = size / 2;
+            const segmentSize = size / segments;
+
+            const _color = new THREE.Color();            // generate vertices, normals and color data for a simple grid geometry
+
+            // console.log(points2);
+            for ( let i = 0; i <= points2[0].length; i ++ ) {
+                let x = points2[i][0];
+                let y = points2[i][1];
+                let z = points2[i][2];
+                vertices.push(x, y, z);
+                normals.push( 0, 0, 1 );
+                const r = ( x / 2 ) + 0.5;
+                const g = ( y / 5 ) + 0.5;
+
+                _color.setRGB( r, 1, g, THREE.SRGBColorSpace );
+
+                colors.push( _color.r, _color.g, _color.b );
+            }
+/*
+*
+*
+*             const _color = new THREE.Color();
+
+            // generate vertices, normals and color data for a simple grid geometry
+
+            for ( let i = 0; i <= segments; i ++ ) {
+
+                const y = ( i * segmentSize ) - halfSize;
+
+                for ( let j = 0; j <= segments; j ++ ) {
+
+                    const x = ( j * segmentSize ) - halfSize;
+
+                    vertices.push( x, - y, 0 );
+                    normals.push( 0, 0, 1 );
+
+                    const r = ( x / size ) + 0.5;
+                    const g = ( y / size ) + 0.5;
+
+                    _color.setRGB( r, g, 1, THREE.SRGBColorSpace );
+
+                    colors.push( _color.r, _color.g, _color.b );
+
+                }
+
+            }
+*
+* */
+
+            // generate indices (data for element array buffer)
+
+            for ( let i = 0; i < segments; i ++ ) {
+
+                for ( let j = 0; j < segments; j ++ ) {
+
+                    const a = i * ( segments + 1 ) + ( j + 1 );
+                    const b = i * ( segments + 1 ) + j;
+                    const c = ( i + 1 ) * ( segments + 1 ) + j;
+                    const d = ( i + 1 ) * ( segments + 1 ) + ( j + 1 );
+
+                    // generate two faces (triangles) per iteration
+
+                    indices.push( a, b, d ); // face one
+                    indices.push( b, c, d ); // face two
+
+                }
+
+            }
+
+            //
+
+            geometry.setIndex( indices );
+            geometry.setAttribute( 'position', new THREE.Float32BufferAttribute( vertices, 3 ) );
+            geometry.setAttribute( 'normal', new THREE.Float32BufferAttribute( normals, 3 ) );
+            geometry.setAttribute( 'color', new THREE.Float32BufferAttribute( colors, 3 ) );
+
+            const material = new THREE.MeshPhongMaterial( {
+                side: THREE.DoubleSide,
+                vertexColors: true,
+                transparent:true,
+                opacity : 0.2
+            } );
+
+            let mesh1 = new THREE.Mesh( geometry, material );
+
+            scene.add(mesh1);
+            return mesh1;
+
+        }
+
+        function drawMeshFromToLink(points1){
+            // const geometry = new THREE.BufferGeometry().setFromPoints(points1);
+
+            console.log(points1)
+            const heartShape = new THREE.Shape().setFromPoints(points1);
+            //
+            // heartShape.moveTo( 0, 0);
+            // heartShape.lineTo( x, 0);
+            // heartShape.lineTo( x, y);
+            // heartShape.lineTo( 0, 0);
+
+            const geometryMesh = new THREE.ShapeGeometry( heartShape );
+            globalMaterial = new THREE.MeshBasicMaterial( { color: 0xffff33, transparent: true, opacity: 0.2 } );
+
+            const mesh = new THREE.Mesh(geometryMesh, globalMaterial);
+
+            scene.add(mesh);
+            renderer.render(scene, camera);
+
+            return mesh;
+        }
+
+        function getScalarFromThreeJSVector3(v){
+            return Math.sqrt(Math.pow(v.x,2)+Math.pow(v.y,2)+Math.pow(v.z,2)).toPrecision(3);
+        }
+
+        function callbackChangePositionX(input, obj){
+            if(obj != null)obj.position.x = input.target.value;
+        }
+        function callbackChangePositionY(input, obj){
+            if(obj != null)obj.position.y = input.target.value;
+        }
+        function callbackChangePositionZ(input, obj){
+            if(obj != null)obj.position.z = input.target.value;
+        }
+
+
+        function startTutorialScalarVector(){
+            //View1
+
+            globalMaterial = new THREE.MeshPhongMaterial({
+                specular: 0xFFFFFF,
+                shininess: 30,
+                color: 0xFF55FF,
+            });
+
+            let sphereA = drawSphere(0.5, 36, 36);
+            globalMaterial = new THREE.MeshPhongMaterial({
+                specular: 0xFFFFFF,
+                shininess: 30,
+                color: 0xFFFFFF,
+            });
+            let centerSphere = drawSphere(0.5, 36, 36);
+            globalMaterial = new THREE.MeshPhongMaterial({
+                specular: 0xFFFFFF,
+                shininess: 30,
+                color: 0x00FFFF,
+            });
+            let sphereB = drawSphere(0.5, 36, 36);
+
+            gRelatives.push(sphereA);
+            gRelatives.push(sphereB);
+            gBaseAbs.push(centerSphere);
+
+            sphereA.position.x = 9;
+            sphereA.position.y = 1;
+            sphereA.position.z = 4;
+
+            sphereB.position.x = 11;
+            sphereB.position.y = 9;
+            sphereB.position.z = -5;
+
+
+            add2DCSSInput(sphereA,"A", "x", sphereA.position.x,  callbackChangePositionX, [0,0,0], 250);
+            add2DCSSInput(sphereA,"A", "y", sphereA.position.y, callbackChangePositionY);
+            add2DCSSInput(sphereA,"A", "z", sphereA.position.z,  callbackChangePositionZ);
+            add2DCSSInput(sphereB,"B", "x", sphereB.position.x,  callbackChangePositionX, [0,0,0], 250);
+            add2DCSSInput(sphereB,"B", "y", sphereB.position.y,  callbackChangePositionY);
+            add2DCSSInput(sphereB,"B", "z", sphereB.position.z,  callbackChangePositionZ);
+
+
+
+            redrawAfterCallback();
+        }
+
+        /*endregion TT_DOT_PRODUCT */
+
+
+
+
+
+/*
+*≒
+⋅
+* ∴≒∓⋂⋃≈√∞⊾∅∈∋∠∡∫°cos(θ)
+
+×
+
+
+
+
+
+
+
+
+
+
+
+
+
+* */
+
+
+        Set3DEnv();
+        setOrbit();
+        SetUI();
+        eventListen();
+        // startTutorialTriangle();
+        startTutorialScalarVector();
+
+
+    </script>
+
+
 
 </head>
 
@@ -1298,3 +1710,265 @@ function drawTriangle(x, y) {
 
 </body>
 </html>
+
+
+<!--
+
+∀
+∁
+∂
+∃
+∄
+∅
+∆
+∇
+∈
+∉
+∊
+∋
+∌
+∍
+∎
+∏
+∐
+∑
+−
+∓
+∔
+∕
+∖
+∗
+∘
+∙
+√
+∛
+∜
+∝
+∞
+∟
+∠
+∡
+∢
+∣
+∤
+∥
+∦
+∧
+∨
+∩
+∪
+∫
+∬
+∭
+∮
+∯
+∰
+∱
+∲
+∳
+∴
+∵
+∶
+∷
+∸
+∹
+∺
+∻
+∼
+∽
+∾
+∿
+≀
+≁
+≂
+≃
+≄
+≅
+≆
+≇
+≈
+≉
+≊
+≋
+≌
+≍
+≎
+≏
+≐
+≑
+≒
+≓
+≔
+≕
+≖
+≗
+≘
+≙
+≚
+≛
+≜
+≝
+≞
+≟
+≠
+≡
+≢
+≣
+≤
+≥
+≦
+≧
+≨
+≩
+≪
+≫
+≬
+≭
+≮
+≯
+≰
+≱
+≲
+≳
+≴
+≵
+≶
+≷
+≸
+≹
+≺
+≻
+≼
+≽
+≾
+≿
+⊀
+⊁
+⊂
+⊃
+⊄
+⊅
+⊆
+⊇
+⊈
+⊉
+⊊
+⊋
+⊌
+⊍
+⊎
+⊏
+⊐
+⊑
+⊒
+⊓
+⊔
+⊕
+⊖
+⊗
+⊘
+⊙
+⊚
+⊛
+⊜
+⊝
+⊞
+⊟
+⊠
+⊡
+⊢
+⊣
+⊤
+⊥
+⊦
+⊧
+⊨
+⊩
+⊪
+⊫
+⊬
+⊭
+⊮
+⊯
+⊰
+⊱
+⊲
+⊳
+⊴
+⊵
+⊶
+⊷
+⊸
+⊹
+⊺
+⊻
+⊼
+⊽
+⊾
+⊿
+⋀
+⋁
+⋂
+⋃
+⋄
+⋅
+⋆
+⋇
+⋈
+⋉
+⋊
+⋋
+⋌
+⋍
+⋎
+⋏
+⋐
+⋑
+⋒
+⋓
+⋔
+⋕
+⋖
+⋗
+⋘
+⋙
+⋚
+⋛
+⋜
+⋝
+⋞
+⋟
+⋠
+⋡
+⋢
+⋣
+⋤
+⋥
+⋦
+⋧
+⋨
+⋩
+⋪
+⋫
+⋬
+⋭
+⋮
+⋯
+⋰
+⋱
+⋲
+⋳
+⋴
+⋵
+⋶
+⋷
+⋸
+⋹
+⋺
+⋻
+⋼
+⋽
+⋾
+⋿
+
+-->
