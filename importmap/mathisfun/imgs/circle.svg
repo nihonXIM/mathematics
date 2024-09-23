@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Copyright 2017 mathsisfun.com -->
+
+<svg
+   width="219.994"
+   height="230.62"
+   version="1.1"
+   id="svg47"
+   sodipodi:docname="circle.svg"
+   inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview49"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     showgrid="false"
+     inkscape:current-layer="svg47"
+     inkscape:showpageshadow="2"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="7.0888514"
+     inkscape:cx="110.8078"
+     inkscape:cy="122.51632"
+     inkscape:window-width="1422"
+     inkscape:window-height="719"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1" />
+  <defs
+     id="defs5">
+    <marker
+       id="id01"
+       style="overflow:visible"
+       orient="auto">
+      <path
+         transform="matrix(0.8,0,0,0.8,10,0)"
+         style="stroke:#000000;stroke-width:1pt"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         id="path2" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       orient="auto"
+       id="id015878"
+       inkscape:stockid="id015878">
+      <path
+         transform="matrix(0.8,0,0,0.8,10,0)"
+         style="fill:#ff6600;fill-opacity:1;stroke:#ff6600;stroke-width:1pt;stroke-opacity:1"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         id="path1797" />
+    </marker>
+  </defs>
+  <path
+     style="fill:none;fill-opacity:1;stroke:#3071d8;stroke-width:1.40526"
+     d="M 111.394,22.3571 C 84.0775,22.5434 57.1641,34.3084 38.4146,54.0511 19.6342,73.4524 9.04886,100.521 9.79387,127.559 c 0.43463,27.72 12.82033,54.914 33.27703,73.508 19.8048,18.408 47.184,28.434 74.2531,27.068 27.844,-1.056 54.882,-14.218 73.042,-35.264 17.849,-20.27 27.068,-47.805 25.082,-74.811 C 213.679,91.0532 200.578,65.071 180.091,47.4392 161.28,31.0489 136.383,21.9226 111.394,22.3571 Z"
+     id="path7" />
+  <path
+     style="opacity:0.7;fill:none;stroke:#ff6600;stroke-width:1.0808;stroke-dasharray:3.2424, 1.0808;marker-start:url(#id015878)"
+     d="M 188.634,58.5952 112.519,124.983"
+     id="path9" />
+  <text
+     x="49.7467"
+     y="120.377"
+     transform="rotate(-0.302596)"
+     style="color:#000000;font-size:17.617px;font-family:'Trebuchet MS';opacity:1;fill:#8f7700;stroke-width:0.2702"
+     id="text11"><tspan
+       sodipodi:role="line"
+       id="tspan8596"
+       x="49.7467"
+       y="120.377">Central</tspan></text>
+  <text
+     x="18.2544"
+     y="164.781"
+     transform="rotate(-42.6199)"
+     style="color:#000000;font-size:20px;font-family:'Trebuchet MS';opacity:0.66;fill:#ff6600;stroke-width:0.2702"
+     id="text13">Radius</text>
+  <path
+     style="fill:#ffffff;stroke:#8f7700;stroke-width:2.021;stroke-miterlimit:4;stroke-dasharray:none"
+     d="m 112.65,122.665 c -0.689,0 -1.367,0.301 -1.84,0.798 -0.472,0.489 -0.74,1.171 -0.721,1.852 0,0.699 0.323,1.384 0.84,1.852 0.498,0.465 1.188,0.717 1.87,0.683 0.701,-0.02 1.382,-0.358 1.84,-0.889 0.45,-0.512 0.682,-1.204 0.631,-1.885 -0.04,-0.68 -0.374,-1.335 -0.89,-1.779 -0.474,-0.413 -1.102,-0.644 -1.73,-0.632 z"
+     id="path15" />
+  <text
+     xml:space="preserve"
+     style="color:#000000;font-style:italic;font-size:20px;line-height:33px;font-family:'Trebuchet MS';-inkscape-font-specification:'Trebuchet MS, Italic';text-decoration:none;text-decoration-line:none;text-decoration-color:#000000;letter-spacing:0px;word-spacing:0px;overflow:visible;fill:#3071d8;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+     id="text5072"
+     transform="translate(1.64373,2.28785)"><textPath
+       xlink:href="#path5953"
+       id="textPath6323"><tspan
+         id="tspan5070"
+         style="fill:#3071d8">Circumference</tspan></textPath></text>
+  <path
+     style="color:#000000;overflow:visible;fill:none;fill-opacity:1;stroke:none;stroke-width:2;stop-color:#000000"
+     id="path5953"
+     sodipodi:type="arc"
+     sodipodi:cx="112.519"
+     sodipodi:cy="124.983"
+     sodipodi:rx="110.661"
+     sodipodi:ry="110.661"
+     sodipodi:start="3.59493"
+     sodipodi:end="4.91624"
+     sodipodi:arc-type="arc"
+     d="M 13.0358,76.517 A 110.661,110.661 0 0 1 134.921,16.6133"
+     sodipodi:open="true" />
+  <text
+     x="60.2978"
+     y="134.601"
+     transform="rotate(-0.302596)"
+     style="color:#000000;font-size:17.617px;font-family:'Trebuchet MS';opacity:1;fill:#8f7700;stroke-width:0.2702"
+     id="text9618"><tspan
+       sodipodi:role="line"
+       id="tspan9616"
+       x="60.2978"
+       y="134.601">Point</tspan></text>
+</svg>

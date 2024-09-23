@@ -34,7 +34,7 @@ rad = 57....deg
 ## Cosine => InputType = Radian, Return Type : Rate|Cos(θ)
 
 ## Dot Product => Return Type : Number
-![img_11.png](img_11.png)
+![img_11.png](../imgs/img_11.png)
 
 
 ### Formula1
@@ -44,7 +44,7 @@ rad = 57....deg
 ### Formula2
 *  A · B = (Ax × Bx) + (Ay × By)
 #### Derived
-![img_13.png](img_13.png)
+![img_13.png](../imgs/img_13.png)
 ```text
 1. Pythagorean theory
 c^2 = a^2 + b^2
@@ -97,7 +97,7 @@ Math.acos(0.7)
 ```
 
 ## Cross Product = ReturnType : Axis(3, 4, 5)
-![img_12.png](img_12.png)
+![img_12.png](../imgs/img_12.png)
 
 ### Expression
 * X = Cross Product
@@ -124,7 +124,7 @@ cos-1(cos(θ)) => sin(radian)
 
 
 # Inside Function Codes
-[function Sin(parameter)](code_signfunction.md)
+[function Sin(parameter)](../code_signfunction.md)
 
 
 ## Inverse Sine Function

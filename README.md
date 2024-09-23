@@ -82,7 +82,7 @@ Xが変化したら、Areaは変化されます。
 ## X:X関数関係の変化量、Irregular
 * データ配列での詳細化
 * 3 = 2, 4 = 6, 7 = 2\
-![img_9.png](img_9.png)
+![img_9.png](importmap/mathisfun/imgs/img_9.png)
 
 # Math Skill Tree
 
@@ -110,7 +110,7 @@ https://experiments.withgoogle.com/search?q=WebGL
 
 #### Practice
 
-* [Geometry](Geometry.md)
+* [Geometry](importmap/mathisfun/curr/Geometry.md)
 
 
 
@@ -143,17 +143,17 @@ https://experiments.withgoogle.com/search?q=WebGL
 
 ### Program Preview
 
-![img_8.png](img_8.png)
+![img_8.png](importmap/mathisfun/imgs/img_8.png)
 
-![img.png](img.png)
+![img.png](importmap/mathisfun/imgs/img.png)
 
 ### TODO Implement Others
-![img_1.png](img_1.png)
-![img_2.png](img_2.png)
-![img_3.png](img_3.png)
-![img_4.png](img_4.png)
-![img_5.png](img_5.png)
-![img_6.png](img_6.png)
-![img_7.png](img_7.png)
+![img_1.png](importmap/mathisfun/imgs/img_1.png)
+![img_2.png](importmap/mathisfun/imgs/img_2.png)
+![img_3.png](importmap/mathisfun/imgs/img_3.png)
+![img_4.png](importmap/mathisfun/imgs/img_4.png)
+![img_5.png](importmap/mathisfun/imgs/img_5.png)
+![img_6.png](importmap/mathisfun/imgs/img_6.png)
+![img_7.png](importmap/mathisfun/imgs/img_7.png)
 
 	

@@ -17,7 +17,7 @@ function setGlobalOffset(x, y, z){
 }
 
 
-function setGlobalLineMaterial(color){
+function setGlobalLineMaterialForColor(color){
     let hex = parseInt(color.replace(/^#/, ''), 16);
     globalLineMaterial = new THREE.LineBasicMaterial({color: hex});
 }

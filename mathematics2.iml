@@ -2,9 +2,14 @@
 <module type="WEB_MODULE" version="4">
   <component name="NewModuleRootManager" inherit-compiler-output="true">
     <exclude-output />
-    <content url="file://$MODULE_DIR$" />
+    <content url="file://$MODULE_DIR$">
+      <excludeFolder url="file://$MODULE_DIR$/deprec_trigonometric" />
+      <excludeFolder url="file://$MODULE_DIR$/importmap/three.js-dev" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/deprec_threejs" />
+    </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="three" level="application" />
+    <orderEntry type="library" name="mathjax" level="application" />
   </component>
 </module>

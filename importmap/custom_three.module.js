@@ -10726,7 +10726,8 @@ class BufferGeometry extends EventDispatcher {
 		for ( let i = 0, l = points.length; i < l; i ++ ) {
 
 			const point = points[ i ];
-			position.push( point.x, point.y, point.z || 0 );
+
+            position.push( point.x, point.y, point.z || 0 );
 
 		}
 

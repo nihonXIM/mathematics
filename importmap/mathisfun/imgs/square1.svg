@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Copyright 2017 mathsisfun.com -->
+
+<svg
+   width="101.5"
+   height="101.5"
+   version="1.1"
+   style="stroke-width:1pt"
+   id="svg215"
+   sodipodi:docname="square1.svg"
+   inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview217"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     showgrid="false"
+     inkscape:zoom="5.62"
+     inkscape:cx="23.309609"
+     inkscape:cy="36.032028"
+     inkscape:window-width="1371"
+     inkscape:window-height="690"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg215" />
+  <defs
+     id="defs209" />
+  <g
+     transform="translate(-119.95,-1931.15)"
+     id="g213"
+     style="font-variation-settings:normal;opacity:1;vector-effect:none;fill:#19aeff;fill-opacity:0.14902;stroke:#204a87;stroke-width:1.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;-inkscape-stroke:none;stop-color:#000000;stop-opacity:1">
+    <rect
+       x="120.7"
+       y="1931.9"
+       width="100"
+       height="100"
+       style="color:#000000;font-variation-settings:normal;overflow:visible;vector-effect:none;fill:#19aeff;fill-opacity:0.14902;stroke:#204a87;stroke-width:1.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;-inkscape-stroke:none;stop-color:#000000;stop-opacity:1"
+       id="rect211" />
+  </g>
+</svg>
